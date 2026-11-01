@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParcelSetu — Clickable Demo (In-City + Railway Parcel Delivery)</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f4f4f1; --surface:#ffffff; --chart:#fcfcfb; --line:#e6e5e0; --line2:#efeeea;
+  --text:#0b0b0b; --text2:#52514e; --muted:#8a8984;
+  --primary:#2a78d6; --primary-d:#1c5cab; --primary-t:#eaf2fc;
+  --s1:#2a78d6; --s2:#eb6834;
+  --good:#0ca30c; --good-t:#e7f6e7; --good-x:#076b07;
+  --warn:#fab219; --warn-t:#fff5df; --warn-x:#8a5a00;
+  --bad:#d03b3b; --bad-t:#fbeaea; --bad-x:#a32828;
+  --info-t:#eaf2fc; --info-x:#1c5cab;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--primary)}
+h1,h2,h3,h4{margin:0;font-weight:600}
+.small{font-size:12px}.muted{color:var(--muted)}.sec{color:var(--text2)}
+.row{display:flex;gap:12px;align-items:center}
+.wrap{flex-wrap:wrap}
+.sp{flex:1}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.g21{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+@media(max-width:1100px){.g6{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g21,.g2,.g3{grid-template-columns:1fr}}
+
+/* buttons, inputs */
+.btn{border:1px solid var(--line);background:var(--surface);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:#cfcec8}
+.btn.pri{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.pri:hover{background:var(--primary-d)}
+.btn.ok{background:var(--good);border-color:var(--good);color:#fff}
+.btn.danger{color:var(--bad-x);border-color:#efc9c9}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.block{width:100%;padding:11px;font-weight:600}
+.inp,select.inp,textarea.inp{border:1px solid var(--line);background:#fff;padding:8px 10px;border-radius:8px;width:100%}
+.inp:focus{outline:2px solid var(--primary-t);border-color:var(--primary)}
+label.f{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.field{margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:7px 14px;cursor:pointer}
+.seg button.on{background:var(--primary);color:#fff}
+.toggle{width:40px;height:22px;border-radius:11px;background:#cfcec8;position:relative;cursor:pointer;border:0;flex:none}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.toggle.on{background:var(--good)}.toggle.on::after{left:21px}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.card h3{font-size:15px;margin-bottom:2px}
+.card .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.ch{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px}
+.ch .sub{margin:0}
+.kpi .lbl{font-size:12px;color:var(--text2)}
+.kpi .val{font-size:24px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .dl{font-size:12px;margin-top:2px;color:var(--muted)}
+.dl.up{color:var(--good-x)}.dl.down{color:var(--bad-x)}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:2px 8px;border-radius:999px;font-weight:500;white-space:nowrap;background:#f0efec;color:var(--text2)}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.8}
+.chip.ok{background:var(--good-t);color:var(--good-x)}
+.chip.warn{background:var(--warn-t);color:var(--warn-x)}
+.chip.bad{background:var(--bad-t);color:var(--bad-x)}
+.chip.info{background:var(--info-t);color:var(--info-x)}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:5px;border:1px solid var(--line);color:var(--text2);background:#fafaf8;white-space:nowrap}
+.tag.rail{border-color:#f5cdb9;background:#fdf1eb;color:#a8441b}
+.tag.city{border-color:#c4dbf6;background:#eef5fd;color:#1c5cab}
+
+/* tables */
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-weight:600;font-size:12px;color:var(--text2);background:#fafaf8;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+td{padding:9px 12px;border-bottom:1px solid var(--line2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafaf8}
+tr.click{cursor:pointer}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tfoot td{font-weight:600;background:#fafaf8;border-top:1px solid var(--line)}
+.id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+
+/* login */
+.login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(160deg,#eef4fc 0%,#f4f4f1 55%,#fbf1ea 100%)}
+.login-box{max-width:1040px;width:100%}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px}
+.logo .mk{width:34px;height:34px;border-radius:9px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.rolecard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:6px}
+.rolecard:hover{border-color:var(--primary);box-shadow:0 6px 20px rgba(42,120,214,.12);transform:translateY(-2px)}
+.rolecard .rt{font-weight:600;font-size:16px}
+.rolecard ul{margin:6px 0 0;padding-left:18px;color:var(--text2);font-size:12.5px}
+.rolecard .badge{align-self:flex-start;font-size:11px;padding:2px 8px;border-radius:6px;background:var(--primary-t);color:var(--primary-d);font-weight:600}
+
+/* shell */
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100%}
+.side{background:#14161a;color:#d9dadc;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side .brand{padding:18px 18px 10px}
+.side .brand .logo{color:#fff;font-size:17px}
+.side .who{margin:4px 12px 10px;padding:10px;border-radius:8px;background:#1f2228;font-size:12px}
+.side .who b{display:block;color:#fff;font-size:13px}
+.side nav{flex:1;overflow:auto;padding:4px 8px}
+.side nav a{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;color:#c3c5c9;text-decoration:none;cursor:pointer;font-size:13.5px}
+.side nav a:hover{background:#1f2228;color:#fff}
+.side nav a.on{background:var(--primary);color:#fff}
+.side nav .grp{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#6f7379;padding:12px 10px 4px}
+.side .foot{padding:12px}
+.side .foot .btn{width:100%;background:#1f2228;border-color:#2b2f36;color:#d9dadc}
+.main{min-width:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:12px;padding:14px 24px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.top h1{font-size:18px}
+.top .crumb{font-size:12px;color:var(--muted)}
+.content{padding:20px 24px 48px}
+.demo-bar{background:#fff8e6;border-bottom:1px solid #f3e2b5;color:#7a5600;font-size:12px;padding:6px 24px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#bbb}
+.dot.on{background:var(--good)}.dot.busy{background:var(--warn)}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tabs button{border:0;background:none;padding:9px 14px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500}
+.tabs button.on{color:var(--primary-d);border-color:var(--primary)}
+
+/* timeline */
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl .ev{position:relative;padding-bottom:16px}
+.tl .ev::before{content:"";position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 3px #fff}
+.tl .ev.done::before{background:var(--good)}
+.tl .ev.todo::before{background:#d6d5d0}
+.tl .ev.todo{color:var(--muted)}
+.tl .ev .t{font-weight:600}
+.tl .ev .m{font-size:12px;color:var(--muted)}
+.medias{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.media{width:118px;border:1px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer;background:#fff;font-size:11px}
+.media svg,.media img{display:block;width:100%;height:72px;object-fit:cover}
+.media span{display:block;padding:4px 6px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* legs */
+.legs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.leg{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fcfcfb}
+.leg .ln{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.leg.cur{border-color:var(--primary);background:var(--primary-t)}
+
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(15,17,20,.45);display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;z-index:50;overflow:auto}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:980px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal.sm{max-width:520px}
+.modal .mh{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.modal .mb{padding:20px}
+.x{border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:4px 10px;font-size:13px}
+.kv div:nth-child(odd){color:var(--muted)}
+
+/* toast + tip */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#14161a;color:#fff;padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:99;max-width:90vw}
+#toast.show{opacity:1}
+.banner{padding:12px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
+.banner.warn{background:var(--warn-t);color:#5c3d00;border:1px solid #f3dca0}
+.banner.bad{background:var(--bad-t);color:var(--bad-x);border:1px solid #efc9c9}
+.nb{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;font-weight:600;line-height:18px;text-align:center;margin-left:6px}
+.mback{display:none;border:0;background:none;font-size:22px;cursor:pointer;padding:0 6px 0 0;line-height:1}
+.bnav{display:none}
+.addrbox{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:#fff}
+.addrbox h4 .dotk{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.mapbox{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px;background:#eef2ea}
+.mapbox svg{display:block;width:100%;height:110px}
+.mapbox .mb2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px;background:#fff;border-top:1px solid var(--line)}
+details.api{margin-top:12px;border:1px solid var(--line);border-radius:10px;background:#fafaf8}
+details.api summary{cursor:pointer;padding:10px 12px;font-weight:600;font-size:13px}
+details.api pre{margin:0;padding:0 12px 12px;font-size:11.5px;overflow:auto;max-height:320px;white-space:pre}
+.cb[disabled]{opacity:.45;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.cb{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-size:13px;text-align:left;line-height:1.3}
+.cb small{display:block;color:var(--muted);font-size:11px}
+.cb.on{border-color:var(--primary);background:var(--primary-t);color:var(--primary-d);font-weight:600}
+.cb.on small{color:var(--primary-d)}
+.step3{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.step3 button{border:0;background:#fafaf8;width:36px;height:36px;font-size:18px;cursor:pointer}
+.step3 span{min-width:40px;text-align:center;font-weight:600}
+.sumbox{background:#fafaf8;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;margin-top:12px}
+.sumbox .r{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+.sumbox .r span:first-child{color:var(--muted)}
+#tip{position:fixed;pointer-events:none;background:#fff;border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.12);border-radius:8px;padding:8px 10px;font-size:12px;z-index:98;display:none;min-width:130px}
+#tip .tt{font-weight:600;margin-bottom:4px}
+#tip .tr{display:flex;align-items:center;gap:6px;justify-content:space-between}
+#tip .sw{width:10px;height:3px;border-radius:2px;display:inline-block}
+
+/* chart */
+.chart{width:100%;position:relative}
+.chart svg{display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--text2);margin-bottom:6px}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.legend i.sq{width:10px;height:10px;border-radius:3px}
+
+/* phone */
+.phone-stage{display:grid;grid-template-columns:auto minmax(0,1fr);gap:32px;align-items:start}
+@media(max-width:1000px){.phone-stage{grid-template-columns:1fr}}
+.phone{width:380px;height:780px;border:11px solid #16181c;border-radius:44px;background:#f4f4f1;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.18);position:relative}
+.phone .notch{height:26px;background:#16181c;width:150px;border-radius:0 0 16px 16px;margin:0 auto;flex:none}
+.ph-head{background:var(--primary);color:#fff;padding:12px 16px}
+.ph-head .t{font-weight:600;font-size:16px}
+.ph-head .s{font-size:12px;opacity:.85}
+.ph-body{flex:1;overflow:auto;padding:12px}
+.ph-nav{display:flex;border-top:1px solid var(--line);background:#fff;flex:none}
+.ph-nav button{flex:1;border:0;background:none;padding:9px 2px 12px;font-size:11px;color:var(--muted);cursor:pointer}
+.ph-nav button b{display:block;font-size:17px;line-height:1.2;font-weight:400}
+.ph-nav button.on{color:var(--primary-d);font-weight:600}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.pcard .h{font-weight:600}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--line)}
+.step:last-child{border:0}
+.step .n{width:24px;height:24px;border-radius:50%;background:#e9e8e4;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none}
+.step.done .n{background:var(--good);color:#fff}
+.step.cur .n{background:var(--primary);color:#fff}
+.upl{border:1.5px dashed #c9c8c2;border-radius:10px;padding:14px;text-align:center;color:var(--text2);cursor:pointer;background:#fff;display:block}
+.upl input{display:none}
+.notes{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.notes h3{margin-bottom:8px}
+.notes ul{margin:6px 0 14px;padding-left:18px;color:var(--text2)}
+.pricebox{background:#fafaf8;border:1px solid var(--line);border-radius:10px;padding:12px}
+.pricebox .r{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
+.pricebox .r.t{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700;font-size:15px}
+.rep-list a{display:block;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--text);text-decoration:none}
+.rep-list a:hover{background:#f4f4f1}
+.rep-list a.on{background:var(--primary-t);color:var(--primary-d);font-weight:600}
+.alert{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:13px}
+.alert:last-child{border:0}
+.alert>.chip{flex:none;align-self:flex-start}
+.drop{border:2px dashed #c9c8c2;border-radius:12px;padding:28px;text-align:center;color:var(--text2)}
+.track-hero{max-width:720px;margin:40px auto;padding:0 16px}
+
+/* ---------- responsive: tablets & phones ---------- */
+.hamb{display:none;border:1px solid var(--line);background:#fff;border-radius:8px;width:38px;height:38px;font-size:18px;cursor:pointer;flex:none}
+.nav-bd{display:none}
+.rep-grid{grid-template-columns:240px minmax(0,1fr)}
+.tbl-wrap{-webkit-overflow-scrolling:touch}
+@media(max-width:1100px){.g3.keep3{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;left:0;top:0;bottom:0;width:260px;z-index:60;transform:translateX(-100%);transition:transform .2s}
+  body.nav-open .side{transform:none;box-shadow:0 0 40px rgba(0,0,0,.35)}
+  body.nav-open .nav-bd{display:block;position:fixed;inset:0;background:rgba(15,17,20,.45);z-index:55}
+  .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:40;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(0,0,0,.05)}
+  .bnav button{flex:1;border:0;background:none;padding:8px 2px 10px;font-size:11px;color:var(--muted);cursor:pointer;position:relative}
+  .bnav button b{display:block;font-size:18px;line-height:1.25;font-weight:400}
+  .bnav button.on{color:var(--primary-d);font-weight:600}
+  .bnav .nb{position:absolute;top:3px;left:calc(50% + 6px);margin:0}
+  .content{padding-bottom:96px!important}
+  #toast{bottom:84px}
+  .mback{display:inline-block}
+  .modal .x{display:none}
+  /* tables become cards */
+  .rt{max-height:none!important;overflow:visible;background:transparent;border:0}
+  .rt thead{display:none}
+  .rt table,.rt tbody,.rt tfoot,.rt tr,.rt td{display:block;width:100%}
+  .rt tbody tr,.rt tfoot tr{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:8px}
+  .rt tfoot tr{background:#fafaf8}
+  .rt td{border:0!important;padding:4px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;white-space:normal;text-align:right;background:transparent!important}
+  .rt td::before{content:attr(data-l);color:var(--muted);font-size:12px;text-align:left;flex:none;font-weight:400}
+  .rt td:first-child{font-weight:600}
+  .rt td[colspan]{display:block;text-align:center}
+  .rt td[colspan]::before{content:none}
+  .top{padding:10px 14px;gap:8px;flex-wrap:wrap}
+  .top h1{font-size:16px}
+  .top .hide-m,.hide-m{display:none!important}
+  .top .btn{padding:6px 10px}
+  .demo-bar{padding:5px 14px;font-size:11px}
+  .content{padding:14px 12px 40px}
+  .grid{gap:12px}
+  .g6,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3,.g2,.g21,.rep-grid{grid-template-columns:minmax(0,1fr)}
+  .g3.keep3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .card{padding:14px}
+  .kpi .val{font-size:20px}
+  .tabs{overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+  .tabs button{padding:9px 10px;flex:none}
+  .filters{flex-wrap:wrap}
+  .filters .inp,.filters select.inp{width:100%!important;flex:1 1 100%}
+  .filters .sp{display:none}
+  .ch{flex-wrap:wrap}
+  .rep-list{display:flex;overflow-x:auto;gap:4px;padding:6px!important}
+  .rep-list a{white-space:nowrap;flex:none}
+  td,th{padding:8px 10px}
+  .ov{padding:0}
+  .modal{border-radius:0;min-height:100%;max-width:none}
+  .modal.sm{border-radius:14px;min-height:auto;margin:16px}
+  .modal .mh{flex-wrap:wrap;padding:12px 14px;position:sticky;top:0;background:#fff;z-index:2}
+  .modal .mb{padding:14px}
+  .legs{grid-template-columns:1fr!important}
+  .kv{grid-template-columns:105px 1fr}
+  .login{padding:18px 14px;align-items:flex-start}
+  .login h2{font-size:20px!important}
+  .rolecard ul{display:none}
+  .rolecard{padding:14px}
+  .rolecard .btn{white-space:normal;padding:9px 8px;font-size:13px}
+  .g2.keep2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .track-hero{margin:16px auto}
+  /* phone-role screens become the real full-screen app */
+  .phone-wrap .top{display:none}
+  .phone-wrap .demo-bar{display:none}
+  .phone-wrap .content{padding:0}
+  .phone-stage{display:block}
+  .phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}
+  .phone .notch{display:none}
+  .ph-head{display:flex;align-items:center;gap:8px;padding:14px 16px}
+  .ph-head .sw{display:inline-block!important}
+  .notes{margin:12px;border-radius:12px}
+}
+@media(max-width:420px){
+  .g6,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi .val{font-size:18px}
+  .kpi .lbl,.kpi .dl{font-size:11px}
+  .legs{grid-template-columns:1fr!important}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="tip"></div>
+<div id="toast"></div>
+
+<script>
+/* =========================================================================
+   ParcelSetu — clickable demo. All data below is SAMPLE data generated in
+   the browser; nothing is sent anywhere. Rename the brand in BRAND.
+   ========================================================================= */
+const BRAND = 'ParcelSetu';
+const NOW = new Date();
+
+/* ---------- helpers ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let _rng = mulberry32(20261101);
+const R = () => _rng();
+const seedOf = str => { let h=7; for(const c of str) h=(h*31+c.charCodeAt(0))|0; return h; };
+const pick = a => a[Math.floor(R()*a.length)];
+const rint = (a,b) => a+Math.floor(R()*(b-a+1));
+const r10 = n => Math.round(n/10)*10;
+const money = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const lakh = n => '₹' + (n/1e5).toFixed(2) + 'L';
+const axisFmt = n => n>=1e5 ? '₹'+(+(n/1e5).toFixed(1))+'L' : n>=1e3 ? '₹'+(+(n/1e3).toFixed(1))+'K' : '₹'+n;
+const num = n => Math.round(n).toLocaleString('en-IN');
+const pct = n => (n*100).toFixed(1)+'%';
+const fdt = d => d.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+const fd = d => d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const ftime = d => d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+const phone = () => '+91 9' + rint(100000000, 999999999);
+const minsAgo = m => new Date(NOW.getTime() - m*60000);
+const addMin = (d,m) => new Date(d.getTime() + m*60000);
+
+/* ---------- master data ---------- */
+const CITIES = {
+  Jaipur:{st:'Jaipur Jn (JP)',state:'Rajasthan',ll:[26.9124,75.7873],areas:['Johari Bazaar','Malviya Nagar','Vaishali Nagar','Mansarovar','C-Scheme','Raja Park'],pins:['302003','302017','302021','302020','302001','302004']},
+  Delhi:{st:'New Delhi (NDLS)',state:'Delhi',ll:[28.6139,77.2090],areas:['Chandni Chowk','Karol Bagh','Lajpat Nagar','Dwarka Sec 10','Rohini Sec 7'],pins:['110006','110005','110024','110075','110085']},
+  Mumbai:{st:'Mumbai Central (MMCT)',state:'Maharashtra',ll:[19.0760,72.8777],areas:['Andheri East','Dadar West','Bandra West','Borivali','Lower Parel'],pins:['400069','400028','400050','400066','400013']},
+  Ahmedabad:{st:'Ahmedabad Jn (ADI)',state:'Gujarat',ll:[23.0225,72.5714],areas:['Navrangpura','Maninagar','Satellite','Vastrapur'],pins:['380009','380008','380015','380054']},
+  Lucknow:{st:'Lucknow Charbagh (LKO)',state:'Uttar Pradesh',ll:[26.8467,80.9462],areas:['Hazratganj','Aminabad','Gomti Nagar','Alambagh'],pins:['226001','226018','226010','226005']},
+  Kota:{st:'Kota Jn (KOTA)',state:'Rajasthan',ll:[25.2138,75.8648],areas:['Talwandi','Vigyan Nagar','Gumanpura','Mahaveer Nagar'],pins:['324005','324009','324007','324011']}
+};
+const CITY_NAMES = Object.keys(CITIES);
+const PIN = {}; for(const c in CITIES) CITIES[c].pins.forEach((p,i)=>{ PIN[p]={city:c,area:CITIES[c].areas[i],state:CITIES[c].state}; });
+function mkAddr(city, o={}){ const c=CITIES[city], ai=rint(0,c.areas.length-1);
+  return {name:o.name||'', phone:o.phone||'', line1:o.line1||pick(['Shop','House','Flat','Plot'])+' No. '+rint(4,220)+(R()<.4?', '+pick(['1st','2nd','Ground'])+' floor':''),
+    line2:o.line2||pick(['Main Bazaar Road','Gali No. '+rint(1,9),'Sector '+rint(1,20)+' Market','Station Road','Link Road']),
+    landmark:o.landmark||pick(['Near Hanuman Mandir','Opp. SBI Bank','Behind Petrol Pump','Near Metro Station','Next to Post Office','Near Govt. School']),
+    area:c.areas[ai], city, state:c.state, pincode:c.pins[ai], lat:+(c.ll[0]+(R()-.5)*.07).toFixed(5), lng:+(c.ll[1]+(R()-.5)*.07).toFixed(5)}; }
+const fmtAddr = a => `${a.line1}, ${a.line2}, ${a.area}, ${a.city} ${a.pincode}`;
+const addr = c => fmtAddr(mkAddr(c));
+function distKm(a,b){ const r=x=>x*Math.PI/180, dLa=r(b.lat-a.lat), dLo=r(b.lng-a.lng); const h=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2; return Math.max(1.5, Math.round(2*6371*Math.asin(Math.sqrt(h))*1.3*10)/10); }
+const GODOWN = {line1:'Plot 14, Godown No. 3',line2:'Sitapura Industrial Area',landmark:'Near RIICO office',area:'Sitapura',city:'Jaipur',state:'Rajasthan',pincode:'302022',lat:26.7807,lng:75.8236};
+
+const SHOPS = [
+  ['Sharma Textiles','Rakesh Sharma','Jaipur'],['Gupta Electronics','Amit Gupta','Jaipur'],['Agarwal Sweets','Neha Agarwal','Jaipur'],
+  ['Mehta Pharma','Kiran Mehta','Ahmedabad'],['Khan Footwear','Arif Khan','Delhi'],['Patel Handicrafts','Jignesh Patel','Ahmedabad'],
+  ['Jain Book Depot','Sunil Jain','Kota'],['Singh Auto Parts','Harpreet Singh','Delhi'],['Verma Garments','Pooja Verma','Lucknow'],
+  ['Kapoor Mobiles','Rahul Kapoor','Mumbai'],['Rathore Spices','Devendra Rathore','Jaipur'],['Bansal Hardware','Manoj Bansal','Kota'],
+  ['Lakshmi Sarees','Meena Iyer','Mumbai'],['Chopra Gifts','Ritu Chopra','Delhi']
+].map((s,i)=>({id:'SK'+(101+i),name:s[0],owner:s[1],city:s[2],phone:phone(),addr:addr(s[2]),
+  gst: R()<0.6 ? '08'+['AAB','AAC','ABD','AAF'][i%4]+'CS'+rint(1000,9999)+'K1Z'+rint(1,9) : '—',
+  kyc: i===12?'Pending':i===13?'Pending':i===9&&false?'Rejected':'Approved',
+  status: i===11?'Blocked':'Active', wallet:rint(4,95)*100, joined:new Date(NOW.getTime()-rint(20,300)*864e5)}));
+SHOPS.push({id:'SK115',name:'Saini Crockery',owner:'Lalit Saini',city:'Jaipur',phone:phone(),addr:addr('Jaipur'),gst:'—',kyc:'Rejected',status:'Active',wallet:0,joined:minsAgo(60*24*3)});
+SHOPS.forEach(sh=>{ sh.loc=mkAddr(sh.city,{name:sh.owner,phone:sh.phone,line1:'Shop No. '+rint(3,90)+', '+sh.name}); sh.addr=fmtAddr(sh.loc); });
+const shopById = id => SHOPS.find(s=>s.id===id);
+
+const BOYS = [
+  ['Ramesh Kumar','Jaipur','Bike'],['Suresh Yadav','Jaipur','Bike'],['Mohit Saini','Jaipur','Scooter'],['Arjun Meena','Kota','Bike'],
+  ['Vikram Singh','Delhi','Bike'],['Imran Ali','Delhi','Bike'],['Deepak Sharma','Ahmedabad','Bike'],['Rohit Verma','Lucknow','Bike'],['Sagar Patil','Mumbai','Bike']
+].map((b,i)=>({id:'DB'+(11+i),name:b[0],city:b[1],vehicle:b[2]+' · RJ'+rint(10,99)+'-'+['SA','CB','KM','TX'][i%4]+'-'+rint(1000,9999),phone:phone(),
+  online: i!==2 && i!==7, busy: i===1||i===4, rating:(4.3+R()*0.6).toFixed(1), joined:new Date(NOW.getTime()-rint(40,300)*864e5)}));
+const boyIn = c => BOYS.filter(b=>b.city===c);
+
+const AGENTS = [
+  ['Mahesh Parcel Agency','Mahesh Choudhary','Jaipur'],['Northern Rail Parcels','Vinod Arora','Delhi'],['Western Parcel Co.','Sanjay Desai','Mumbai'],
+  ['Gujarat Rail Cargo','Hitesh Shah','Ahmedabad'],['Awadh Parcel Services','Anwar Hussain','Lucknow'],['Hadoti Parcel Point','Gopal Nagar','Kota']
+].map((a,i)=>({id:'RA'+(21+i),agency:a[0],name:a[1],city:a[2],station:CITIES[a[2]].st,phone:phone(),fee:[50,60,70,50,50,40][i]}));
+AGENTS.forEach(a=>{ const c=CITIES[a.city]; a.loc={name:a.name+' ('+a.agency+')',phone:a.phone,line1:'Parcel Office, Platform 1',line2:a.station,landmark:'Next to main entrance',area:'Station Road',city:a.city,state:c.state,pincode:c.pins[0],lat:+(c.ll[0]+.004).toFixed(5),lng:+(c.ll[1]-.003).toFixed(5)}; a.loc.addr=a.agency+', Parcel Office, '+a.station; });
+const agentIn = c => AGENTS.find(a=>a.city===c);
+
+const DRIVERS = ['Sunil','Kamal','Raju','Naresh','Ajay','Vijay','Pankaj','Lokesh','Sanjay','Bablu'];
+const RECEIVERS = ['Anita Joshi','Prakash Rao','Fatima Sheikh','Gaurav Mishra','Kavita Nair','Rohan Desai','Sneha Kulkarni','Tarun Bhatia','Pallavi Singh','Yusuf Qureshi','Nikhil Jain','Divya Menon','Ashok Tiwari','Shalini Gupta'];
+const ITEMS = ['Garments (12 pcs)','Mobile accessories','Sweets box','Medicines (sealed)','Footwear (6 pairs)','Handicraft items','Books (20 pcs)','Auto spare parts','Sarees (8 pcs)','Electronics','Spices (sealed packs)','Hardware tools','Gift hampers','Crockery'];
+
+const CATS=[['Documents','📄'],['Clothing & textiles','👕'],['Electronics & mobiles','📱'],['Food & sweets','🍬'],['Medicines','💊'],['Household & crockery','🏠'],['Auto & hardware parts','🔧'],['Books & stationery','📚'],['Other','📦']];
+function catFor(it){ return /Garment|Saree|Footwear/.test(it)?'Clothing & textiles':/Mobile|Electronic/.test(it)?'Electronics & mobiles':/Sweet|Spice/.test(it)?'Food & sweets':/Medicine/.test(it)?'Medicines':/Crockery|Gift|Handicraft|almirah/i.test(it)?'Household & crockery':/Auto|Hardware/.test(it)?'Auto & hardware parts':/Book/.test(it)?'Books & stationery':'Other'; }
+function vehicleFor(chW, maxSide){ return chW<=20 && maxSide<=60 ? '2 Wheeler' : chW<=500 ? '3 Wheeler' : 'Tata Ace / pickup'; }
+const IN_FLOW = ['Request Raised','Approved & Assigned','Picked Up','Out for Delivery','Delivered'];
+const RL_FLOW = ['Request Raised','Approved & Assigned','Picked Up from Shop','Handed to Origin Agent','Received by Origin Agent','Loaded on Train','In Transit by Train','Arrived at Destination','Received by Destination Agent','Leg 3 Assigned','Out for Delivery','Delivered'];
+const MEDIA_AT = {
+  'Picked Up':[['Pickup photo','img']], 'Picked Up from Shop':[['Pickup photo','img']],
+  'Handed to Origin Agent':[['Handover photo','img']],
+  'Received by Origin Agent':[['Parcel received','img']],
+  'Loaded on Train':[['Loading video','video'],['PWB receipt','img']],
+  'Received by Destination Agent':[['Unloading photo','img']],
+  'Delivered':[['Delivery photo','img'],['OTP verified','img']]
+};
+
+/* ---------- shipment builder ---------- */
+let SEQ = 24101;
+const SH = [];
+function roadLeg(n, city, fromLoc, toLoc, mode, boy, weight){
+  const km = distKm(fromLoc, toLoc), far = km>60;
+  const isP = mode==='Porter';
+  const veh = far||weight>25 ? 'Tata Ace' : weight>10 ? '3 Wheeler' : '2 Wheeler';
+  return {n, kind:'road', city, from:fromLoc.addr||fmtAddr(fromLoc), to:toLoc.addr||fmtAddr(toLoc), fromLoc, toLoc, mode, km,
+    boy: isP?null:boy, porter: isP?{crn:'CRN'+rint(10000000,99999999), driver:pick(DRIVERS), vehicle:veh, phone:phone()}:null,
+    cost: far ? (isP ? r10(km*21) : r10(km*9)) : isP ? r10(70 + km*13 + (weight>10?60:0)) : r10(35 + km*5)};
+}
+function makeLegs(s, o={}){
+  const fc=s.from.city, tc=s.to.city, w=s.weight; s.legs=[];
+  const pickMode=(city,forced)=>{ if(forced) return forced; const bs=boyIn(city).filter(b=>b.online); return (bs.length&&R()<0.45)?'Own':'Porter'; };
+  const anyBoy=c=>pick(boyIn(c).length?boyIn(c):BOYS);
+  if(s.type==='incity'){
+    const m=pickMode(fc,o.mode1), lg=roadLeg(1, fc===tc?fc:fc+' → '+tc, s.from, s.to, m, o.boy1||anyBoy(fc), w);
+    s.legs.push(lg); s.cost=lg.cost; s.price = fc!==tc ? r10(lg.cost*1.22) : m==='Porter' ? r10(lg.cost*1.24) : r10(60+lg.km*9+w*4);
+  } else {
+    const ao=agentIn(fc), ad=agentIn(tc), m1=pickMode(fc,o.mode1), m3=pickMode(tc,o.mode3);
+    s.legs.push(roadLeg(1, fc, s.from, ao.loc, m1, o.boy1||anyBoy(fc), w));
+    const hours=o.trainHours||rint(6,20), rail=r10(60+w*14), agentFee=ao.fee+ad.fee;
+    s.legs.push({n:2, kind:'train', from:ao.station, to:ad.station, agentO:ao, agentD:ad, rail, agentFee, cost:rail+agentFee,
+      train:{no:String(rint(12001,12999)), name:`${fc}–${tc} SF Express`, pwb:'PWB'+rint(1000000,9999999), coach:'SLR-'+rint(1,2), hours, charges:rail}});
+    s.legs.push(roadLeg(3, tc, ad.loc, s.to, m3, o.boy3||anyBoy(tc), w));
+    s.cost=s.legs.reduce((a,l)=>a+l.cost,0); s.price=r10(s.cost*1.22);
+  }
+  s.flow = s.type==='incity'?IN_FLOW:RL_FLOW;
+}
+function build(o){
+  const shop = o.shop, type = o.type;
+  const toCity = o.toCity || (o.to && o.to.city);
+  const weight = o.weight ?? (type==='incity'? rint(1,14) : rint(3,35));
+  const s = {id:'PS'+(SEQ++), type, shop, created:o.created, weight, items:o.items||ITEMS[SHOPS.indexOf(shop)%ITEMS.length],
+    dims:`${rint(20,60)}×${rint(15,40)}×${rint(10,35)} cm`, declared:rint(8,250)*100,
+    from: o.from || {...shop.loc, addr:shop.addr},
+    to: o.to || (()=>{ const a=mkAddr(toCity,{name:pick(RECEIVERS),phone:phone()}); a.addr=fmtAddr(a); return a; })(),
+    pay: pick(['Wallet','UPI','Wallet','Card']), bookedBy: R()<0.75?'Shopkeeper':'Admin', otp: String(rint(1000,9999)), legs:[], events:[], delayed:false};
+  { const d=s.dims.match(/\d+/g).map(Number); s.volW=Math.round(d[0]*d[1]*d[2]/500)/10; }
+  s.qty=o.qty||rint(1,3); s.cat=o.cat||catFor(s.items); s.fragile=o.fragile??/Crockery|Electronics|Sweets|Handicraft|Mobile/.test(s.items);
+  s.pickup=o.pickup||pick(['Today · within 60 min','Today · 12–2 PM','Today · 4–6 PM','Tomorrow · 10 AM–12 PM']);
+  s.vehicle=o.vehicle||vehicleFor(Math.max(weight,s.volW), Math.max(...s.dims.match(/\d+/g).map(Number)));
+  makeLegs(s, o);
+  // step durations (minutes)
+  const hrs = type==='railway' ? s.legs[1].train.hours : 0;
+  const dur = type==='incity' ? [0,4,rint(15,35),rint(5,12),rint(20,45)]
+    : [0,rint(10,30),rint(40,90),rint(30,70),rint(5,20),rint(90,240),rint(5,15),hrs*60,rint(15,40),rint(5,15),rint(30,60),rint(30,60)];
+  let t = new Date(s.created), stage = o.stage;
+  for(let k=0;k<=stage;k++){
+    t = addMin(t, dur[k]);
+    if(t>NOW && k>0){ stage = k-1; break; }
+    pushEvent(s, s.flow[k], t);
+  }
+  s.stage = Math.min(stage, s.flow.length-1);
+  s.status = s.flow[s.stage];
+  if(o.cancel){ s.status='Cancelled'; s.events.push({st:'Cancelled', t:addMin(s.created,12), by:'Admin (on shopkeeper request)', media:[], note:'Refund ₹'+s.price+' to wallet'}); }
+  if(type==='railway' && ['Loaded on Train','In Transit by Train'].includes(s.status) && R()<0.35) s.delayed = true;
+  if(o.delayed) s.delayed = true;
+  SH.push(s);
+  return s;
+}
+function legFor(s, st){
+  if(s.type==='incity') return s.legs[0];
+  const i = s.flow.indexOf(st);
+  return i<=3 ? s.legs[0] : i<=8 ? s.legs[1] : s.legs[2];
+}
+function actor(s, st){
+  const L = legFor(s, st);
+  if(st==='Request Raised') return s.bookedBy==='Admin' ? 'Admin · Anil Kumar (order taken on phone)' : s.shop.owner+' (Shopkeeper)';
+  if(st==='Approved & Assigned') return 'Admin · Anil Kumar · approved, ' + (L.mode==='Porter' ? 'Porter order '+L.porter.crn : 'assigned to '+L.boy.name);
+  if(st==='Leg 3 Assigned') return 'System (auto) · ' + (L.mode==='Porter' ? 'Porter order '+L.porter.crn : 'assigned to '+L.boy.name);
+  if(st==='In Transit by Train') return 'System · Train '+s.legs[1].train.no+' departed';
+  if(['Received by Origin Agent','Loaded on Train'].includes(st)) return s.legs[1].agentO.name+' (Railway Agent)';
+  if(['Arrived at Destination','Received by Destination Agent'].includes(st)) return s.legs[1].agentD.name+' (Railway Agent)';
+  return L.mode==='Porter' ? 'Porter API · '+L.porter.driver+' ('+L.porter.vehicle+')' : L.boy.name+' (Delivery Boy)';
+}
+function pushEvent(s, st, t, extra){
+  const media = (MEDIA_AT[st]||[]).map(m=>({label:m[0], kind:m[1], t, gps:`${(26+R()*2).toFixed(4)}, ${(75+R()*3).toFixed(4)}`}));
+  s.events.push(Object.assign({st, t, by:actor(s, st), media}, extra||{}));
+}
+
+/* random history */
+for(let i=0;i<64;i++){
+  const shop = SHOPS[i%14];
+  const type = R()<0.55 ? 'incity' : 'railway';
+  const toCity = type==='incity' ? shop.city : pick(CITY_NAMES.filter(c=>c!==shop.city));
+  const daysAgo = i<10 ? 0 : i<20 ? 1 : rint(2,12);
+  const created = daysAgo===0 ? minsAgo(rint(30,480)) : (()=>{const d=new Date(NOW.getTime()-daysAgo*864e5); d.setHours(rint(9,18),rint(0,59)); return d;})();
+  const last = type==='incity'?4:11;
+  const stage = daysAgo===0 ? rint(0, type==='incity'?4:6) : daysAgo===1 ? (type==='incity'?4:rint(5,11)) : last;
+  build({shop, type, toCity, created, stage, cancel: daysAgo>1 && R()<0.05});
+}
+/* scripted demo shipments (used by Delivery Boy + Railway Agent screens) */
+const RAMESH = BOYS[0], MAHESH = AGENTS[0];
+const D1 = build({shop:SHOPS[0], type:'incity', toCity:'Jaipur', created:minsAgo(18), stage:1, mode1:'Own', boy1:RAMESH, items:'Garments (12 pcs)', weight:4});
+const D2 = build({shop:SHOPS[1], type:'railway', toCity:'Delhi', created:minsAgo(30), stage:1, mode1:'Own', boy1:RAMESH, mode3:'Porter', items:'Electronics', weight:9});
+const D3 = build({shop:SHOPS[4], type:'railway', toCity:'Jaipur', created:minsAgo(60*11), stage:6, mode1:'Porter', mode3:'Own', boy3:RAMESH, trainHours:5, items:'Footwear (6 pairs)', weight:14});
+const D4 = build({shop:SHOPS[2], type:'railway', toCity:'Lucknow', created:minsAgo(240), stage:3, mode1:'Porter', mode3:'Porter', items:'Sweets box', weight:7});
+const D5 = build({shop:SHOPS[10], type:'railway', toCity:'Mumbai', created:minsAgo(300), stage:4, mode1:'Own', boy1:BOYS[1], mode3:'Own', items:'Spices (sealed packs)', weight:18});
+const REQ_NOTES=['Please pick after 4 PM, shop is busy before that','Fragile items, handle with care','Receiver available only till 7 PM','Call before coming, godown is at the back'];
+[[SHOPS[0],'incity','Jaipur',9,6,'Garments (20 pcs)'],[SHOPS[9],'railway','Delhi',26,12,'Mobile accessories'],[SHOPS[3],'incity','Ahmedabad',41,3,'Medicines (sealed)'],[SHOPS[0],'railway','Lucknow',58,15,'Garments (40 pcs)'],[SHOPS[7],'railway','Jaipur',80,22,'Auto spare parts']]
+  .forEach((r,i)=>{ const x=build({shop:r[0],type:r[1],toCity:r[2],created:minsAgo(r[3]),stage:0,weight:r[4],items:r[5]}); if(i%2===0) x.reqNote=REQ_NOTES[i%4]; });
+{ const x=build({shop:SHOPS[0],type:'railway',toCity:'Kota',created:minsAgo(60*30),stage:0,weight:48,items:'Iron almirah (1 pc)'}); x.status='Rejected'; x.rejectReason='Parcel too heavy for railway parcel van (48 kg). Please split into 2 boxes.'; x.events.push({st:'Rejected',t:minsAgo(60*29.7),by:'Admin · Anil Kumar',media:[],note:x.rejectReason}); }
+SH.filter(x=>x.stage===0).forEach(x=>{ x.bookedBy='Shopkeeper'; x.events[0].by=actor(x,'Request Raised'); });
+SH.sort((a,b)=>b.created-a.created);
+
+/* ---------- aggregates (sample) ---------- */
+const MONTHS = Array.from({length:12},(_,i)=>{const d=new Date(NOW.getFullYear(), NOW.getMonth()-12+i, 1); return d.toLocaleDateString('en-IN',{month:'short'})+" '"+String(d.getFullYear()).slice(2)});
+const REV = [140000,188000,231000,279000,312000,391000,438000,522000,594000,681000,763000,889000];
+const PROFIT = REV.map((r,i)=>Math.round(r*(0.165+i*0.007)));
+const PARCELS_M = REV.map(r=>Math.round(r/430));
+const DAYS = Array.from({length:14},(_,i)=>{const d=new Date(NOW.getTime()-(13-i)*864e5); return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})});
+const D_IN = [41,38,45,52,47,39,55,58,49,61,57,52,63,66];
+const D_RL = [19,22,24,21,27,25,29,31,28,33,30,35,37,41];
+const LAST = REV.length-1;
+const COST_T = REV[LAST]-PROFIT[LAST];
+const COSTS = [['Porter fares',0.46],['Railway parcel charges',0.306],['Delivery boy payouts',0.107],['Railway agent commission',0.093],['Payment gateway fees',0.021],['WhatsApp & SMS',0.013]]
+  .map(c=>({label:c[0], value:Math.round(COST_T*c[1])}));
+
+/* =========================================================================
+   STATE + ROUTER
+   ========================================================================= */
+const S = {role:null, page:null, tab:{}, filter:{q:'',type:'',status:'',city:''}, report:'daily', boyTab:'home', boyJob:null, agentTab:'home', agentSel:null, pending:{}, shopTab:'dash', newType:'incity'};
+const ROLES = {
+  admin:{label:'Admin', user:'Anil Kumar', sub:'Super Admin', nav:[
+    ['Overview'],['dashboard','Dashboard'],
+    ['Operations'],['requests','Shop Requests'],['bookings','All Bookings'],['create','Create Booking'],['dispatch','Dispatch & Assign'],['porter','Porter Orders'],['railway','Railway & Agents'],
+    ['People'],['users','Users'],['support','Support Tickets'],
+    ['Money'],['earnings','Earnings & Finance'],['payouts','Payouts'],['pricing','Pricing & Rates'],
+    ['Insights'],['reports','Reports'],['notify','WhatsApp & SMS'],['audit','Audit Log'],['settings','Settings']]},
+  shop:{label:'Shopkeeper', user:SHOPS[0].owner, sub:SHOPS[0].name+' · Jaipur', nav:[
+    ['Menu'],['sdash','Dashboard'],['sbook','New Request'],['sparcels','My Requests & Parcels'],['saddr','Address Book'],['swallet','Wallet & Payments'],['sinv','Invoices'],['ssupport','Help & Support'],['sprofile','Profile & KYC']]},
+  boy:{label:'Delivery Boy', user:RAMESH.name, sub:'Jaipur · '+RAMESH.vehicle},
+  agent:{label:'Railway Agent', user:MAHESH.name, sub:MAHESH.agency+' · '+MAHESH.station},
+};
+/* ---- navigation with real browser history, so the phone's Back button works ---- */
+let NAVD=0, MODAL_PUSHED=false;
+function baseHash(){ if(S.role==='track') return 'track/'+(S.trackId||''); if(!S.role) return '';
+  if(S.role==='boy') return 'boy/'+(S.boyJob?'job/'+S.boyJob:S.boyTab);
+  if(S.role==='agent') return 'agent/'+(S.agentSel?'p/'+S.agentSel:S.agentTab);
+  return S.role+'/'+S.page; }
+function nav(){ const h=baseHash(); if(location.hash.slice(1)!==h) history.pushState({n:++NAVD},'','#'+h); document.body.classList.remove('nav-open'); render(); window.scrollTo(0,0); }
+function go(p){ S.page=p; nav(); }
+function login(r){ closeModalNow(); S.role=r; S.page = r==='admin'?'dashboard':r==='shop'?'sdash':r; S.boyJob=null; S.agentSel=null; S.boyTab='home'; S.agentTab='home'; nav(); }
+function logout(){ closeModalNow(); S.role=null; nav(); }
+function goBack(){ if(NAVD>0) history.back(); else { S.boyJob=null; S.agentSel=null; nav(); } }
+function boyOpen(id){ S.boyJob=id; S.pending={}; nav(); }
+function boyTabGo(t){ S.boyJob=null; S.boyTab=t; nav(); }
+function agentOpen(id){ S.agentSel=id; S.pending={}; nav(); }
+function agentTabGo(t){ S.agentSel=null; S.agentTab=t; nav(); }
+function applyHash(){
+  const parts=location.hash.slice(1).split('/'), r=parts[0];
+  closeModalNow(); MODAL_PUSHED=false;
+  if(!r) S.role=null;
+  else if(r==='track'){ S.role='track'; if(parts[1]) S.trackId=parts[1]; }
+  else if(r==='boy'){ S.role='boy'; S.boyJob = parts[1]==='job' ? parts[2] : null; if(parts[1]!=='job') S.boyTab = parts[1]||'home'; }
+  else if(r==='agent'){ S.role='agent'; S.agentSel = parts[1]==='p' ? parts[2] : null; if(parts[1]!=='p') S.agentTab = parts[1]||'home'; }
+  else if(ROLES[r]){ S.role=r; S.page = parts[1] || (r==='admin'?'dashboard':'sdash'); }
+  render();
+  const d=parts[2];
+  if(d && (r==='admin'||r==='shop')){ if(S.page==='reports' && !d.includes(':')){ S.report=d; render(); } else openDetail(d,false); }
+}
+window.addEventListener('popstate', ()=>{ NAVD=Math.max(0,NAVD-1); applyHash(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+function openDetail(d, push=true){
+  if(push){ history.pushState({n:++NAVD},'','#'+baseHash()+'/'+d); MODAL_PUSHED=true; }
+  const k=d.slice(0,d.indexOf(':')), v=d.slice(d.indexOf(':')+1);
+  if(k==='p') showShipment(v); else if(k==='r') showRequest(v); else if(k==='s') showShop(v); else if(k==='bulk') showBulk(v);
+}
+function openShipment(id){ openDetail('p:'+id); }
+function openRequest(id){ openDetail('r:'+id); }
+function shopProfile(id){ openDetail('s:'+id); }
+function bulkUpload(w){ openDetail('bulk:'+w); }
+function setTab(k,v){ S.tab[k]=v; render(); }
+let CH = {};
+function render(){
+  CH = {};
+  _rng = mulberry32(seedOf(String(S.role)+S.page+JSON.stringify(S.tab)+S.report));
+  const root = document.getElementById('root');
+  if(S.role==='track'){ root.innerHTML = trackPage(); return; }
+  if(!S.role){ root.innerHTML = loginPage(); return; }
+  const role = ROLES[S.role];
+  if(S.role==='boy' || S.role==='agent'){ root.innerHTML = phoneShell(); drawCharts(); return; }
+  const cur = role.nav.find(n=>n[0]===S.page) || [];
+  const page = PAGES[S.page] ? PAGES[S.page]() : '<div class="card">Coming soon</div>';
+  document.body.classList.remove('nav-open');
+  root.innerHTML = `<div class="nav-bd" onclick="document.body.classList.remove('nav-open')"></div><div class="app"><aside class="side">
+    <div class="brand"><div class="logo"><div class="mk">PS</div>${BRAND}</div></div>
+    <div class="who"><span class="muted">${role.label} login</span><b>${role.user}</b><span class="muted">${role.sub}</span></div>
+    <nav>${role.nav.map(n=>n.length===1?`<div class="grp">${n[0]}</div>`:`<a class="${S.page===n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]}${n[0]==='requests'&&SH.filter(isReq).length?`<span class="nb">${SH.filter(isReq).length}</span>`:''}</a>`).join('')}</nav>
+    <div class="foot"><button class="btn" onclick="logout()">⇄ Switch login</button></div></aside>
+    <div class="main"><div class="demo-bar">Demo mockup with sample data. Buttons work in the demo but nothing is saved.</div>
+    <header class="top"><button class="hamb" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu">☰</button><div><div class="crumb">${role.label}</div><h1>${cur[1]||''}</h1></div><div class="sp"></div>${topRight()}</header>
+    <div class="content">${page}</div></div></div>${bottomNav()}`;
+  drawCharts();
+}
+function bottomNav(){
+  const pend = S.role==='admin' ? SH.filter(isReq).length : SH.filter(s=>s.shop===MYSHOP&&isReq(s)).length;
+  const items = S.role==='admin' ? [['dashboard','⌂','Home'],['requests','✓','Requests',pend],['bookings','☰','Bookings'],['dispatch','➜','Dispatch'],['_menu','⋯','More']]
+    : [['sdash','⌂','Home'],['sbook','＋','Request'],['sparcels','▤','Parcels',pend],['swallet','₹','Wallet'],['_menu','⋯','More']];
+  return `<nav class="bnav">${items.map(i=>`<button class="${S.page===i[0]?'on':''}" onclick="${i[0]==='_menu'?"document.body.classList.toggle('nav-open')":`go('${i[0]}')`}"><b>${i[1]}</b>${i[2]}${i[3]?`<span class="nb">${i[3]}</span>`:''}</button>`).join('')}</nav>`;
+}
+function topRight(){
+  if(S.role==='admin') return `<input class="inp hide-m" style="width:260px" placeholder="Search tracking ID, phone, shop…" onkeydown="if(event.key==='Enter'){S.filter.q=this.value;go('bookings')}">
+    <button class="btn" onclick="go('requests')">🔔 ${SH.filter(isReq).length}</button>
+    <button class="btn pri" onclick="go('create')">+ New<span class="hide-m"> Booking</span></button>`;
+  return `<span class="small muted hide-m">Wallet</span><b class="hide-m">${money(SHOPS[0].wallet)}</b><button class="btn hide-m" onclick="go('swallet')">Recharge</button><button class="btn pri" onclick="go('sbook')">+ New<span class="hide-m"> Request</span></button>`;
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+function modal(html, cls){ closeModalNow(); const d=document.createElement('div'); d.className='ov'; d.id='ov'; d.onclick=e=>{if(e.target===d) closeModal()};
+  d.innerHTML=`<div class="modal ${cls||''}">${html.replace('<div class="mh">','<div class="mh"><button class="mback" onclick="closeModal()" aria-label="Back">←</button>')}</div>`; document.body.appendChild(d); document.body.style.overflow='hidden'; }
+function closeModalNow(){ const o=document.getElementById('ov'); if(o) o.remove(); document.body.style.overflow=''; }
+function closeModal(){ if(!document.getElementById('ov')) return; closeModalNow(); if(MODAL_PUSHED){ MODAL_PUSHED=false; history.back(); } else history.replaceState(history.state,'','#'+baseHash()); }
+function leaveModal(){ closeModalNow(); if(MODAL_PUSHED){ MODAL_PUSHED=false; history.replaceState(history.state,'','#'+baseHash()); } }
+
+/* ---------- UI atoms ---------- */
+const stCls = s => s==='Delivered'?'ok':(s==='Cancelled'||s==='Rejected')?'bad':s==='Request Raised'?'warn':'info';
+const chip = (txt, cls) => `<span class="chip ${cls??stCls(txt)}">${txt==='Request Raised'?'Pending approval':txt}</span>`;
+const isReq = s => s.status==='Request Raised';
+const isLive = s => s.stage>0 && !['Delivered','Cancelled','Rejected'].includes(s.status);
+const ago = d => { const m=Math.max(1,Math.round((Date.now()-d)/60000)); return m<60? m+' min ago' : m<1440? Math.round(m/60)+' h ago' : Math.round(m/1440)+' d ago'; };
+const typeTag = s => { if(isReq(s)) return S.role==='admin' ? `<span class="tag">Suggested: ${s.from.city===s.to.city?'In-city':'Railway'}</span>` : '<span class="tag">Method: decided by admin</span>';
+  return s.type==='railway' ? '<span class="tag rail">Railway</span>' : s.from.city!==s.to.city ? '<span class="tag" style="background:#f3effc;border-color:#d6cdf3;color:#5b47b8">Direct road</span>' : '<span class="tag city">In-city</span>'; };
+const addrHtml = a => `<div style="white-space:normal">${a.line1}, ${a.line2}<br>${a.area}, ${a.city}, ${a.state} – <b>${a.pincode}</b><br><span class="muted">Landmark: ${a.landmark||'—'}</span><br><a href="https://maps.google.com/?q=${a.lat},${a.lng}" target="_blank" class="small">📍 ${a.lat}, ${a.lng} · Open map</a></div>`;
+function porterPayload(id, from, to, fragile){ const ad=a=>({lat:a.lat,lng:a.lng,address:{apartment_address:a.line1,street_address1:a.line2,street_address2:a.area,landmark:a.landmark,city:a.city,state:a.state,pincode:a.pincode,country:'India',contact_details:{name:a.name,phone_number:a.phone}}});
+  return JSON.stringify({request_id:id, delivery_instructions:{instructions_list:[{type:'text',description:fragile?'Fragile, handle with care':'Handle with care'}]}, pickup_details:ad(from), drop_details:ad(to)},null,2); }
+const modeTxt = s => s.type==='incity' ? (s.legs[0].mode==='Porter'?'Porter':'Own boy') : `${s.legs[0].mode==='Porter'?'Porter':'Own'} → Train → ${s.legs[2].mode==='Porter'?'Porter':'Own'}`;
+const kpi = (lbl,val,dl,dir) => `<div class="card kpi"><div class="lbl">${lbl}</div><div class="val">${val}</div>${dl?`<div class="dl ${dir||''}">${dl}</div>`:''}</div>`;
+function table(cols, rows, opts={}){
+  const L = i => String(cols[i].t??cols[i]).replace(/<[^>]*>/g,'');
+  return `<div class="tbl-wrap rt" ${opts.h?`style="max-height:${opts.h}px"`:''}><table><thead><tr>${cols.map(c=>`<th class="${c.num?'num':''}">${c.t??c}</th>`).join('')}</tr></thead>
+  <tbody>${rows.map(r=>`<tr ${r.click?`class="click" onclick="${r.click}"`:''}>${r.cells.map((v,i)=>`<td class="${cols[i].num?'num':''}" data-l="${L(i)}">${v}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}" class="muted" style="text-align:center;padding:24px">No records</td></tr>`}</tbody>
+  ${opts.foot?`<tfoot><tr>${opts.foot.map((v,i)=>`<td class="${cols[i].num?'num':''}" data-l="${L(i)}">${v}</td>`).join('')}</tr></tfoot>`:''}</table></div>`;
+}
+const tabs = (key, list) => { const cur=S.tab[key]||list[0][0]; return `<div class="tabs">${list.map(t=>`<button class="${cur===t[0]?'on':''}" onclick="setTab('${key}','${t[0]}')">${t[1]}</button>`).join('')}</div>`; };
+const curTab = (key, def) => S.tab[key]||def;
+function mediaThumb(m){
+  const inner = m.url ? (m.kind==='video'?`<video src="${m.url}" muted></video>`:`<img src="${m.url}">`)
+    : `<svg viewBox="0 0 120 72" preserveAspectRatio="xMidYMid slice"><rect width="120" height="72" fill="#e7edf5"/><path d="M0 58 L34 34 L58 52 L80 38 L120 62 L120 72 L0 72Z" fill="#c9d7ea"/><circle cx="94" cy="20" r="8" fill="#d8e3f1"/>${m.kind==='video'?'<circle cx="60" cy="36" r="13" fill="rgba(0,0,0,.45)"/><path d="M56 29 L67 36 L56 43Z" fill="#fff"/>':''}</svg>`;
+  return `<div class="media" onclick="toast('${m.label} · ${ftime(m.t)} · GPS ${m.gps}')">${inner}<span>${m.label} · ${ftime(m.t)}</span></div>`;
+}
+
+/* =========================================================================
+   CHARTS (SVG, hover tooltips)
+   ========================================================================= */
+function niceStep(r){const p=10**Math.floor(Math.log10(r));const f=r/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p}
+function chartDiv(id, cfg){ CH[id]=cfg; const lg = cfg.series && cfg.series.length>1 ? `<div class="legend">${cfg.series.map(s=>`<span><i class="${cfg.kind==='stack'?'sq':''}" style="background:${s.color}"></i>${s.name}</span>`).join('')}</div>` : ''; return `${lg}<div class="chart" id="${id}" style="height:${cfg.h||240}px"></div>`; }
+function drawCharts(){ for(const id in CH){ const el=document.getElementById(id); if(!el) continue; const c=CH[id]; el.innerHTML = c.kind==='line'?lineSVG(id,el.clientWidth,c):c.kind==='stack'?stackSVG(id,el.clientWidth,c):hbarSVG(id,el.clientWidth,c); } }
+window.addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(drawCharts,120)});
+function yAxis(W,m,ih,max,step,fmt){ let g=''; for(let v=0; v<=max+1e-9; v+=step){ const y=m.t+ih-(v/max)*ih; g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="${v===0?'#cfcec8':'#ecebe7'}" stroke-width="1"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" font-size="11" fill="#8a8984">${fmt(v)}</text>`; } return g; }
+function lineSVG(id,W,c){
+  const narrow=W<520, H=c.h||240, m={l:50,r:narrow?62:118,t:12,b:26}, iw=W-m.l-m.r, ih=H-m.t-m.b, n=c.labels.length;
+  const every=Math.max(1,Math.ceil(52/(iw/(n-1))));
+  const mx=Math.max(...c.series.flatMap(s=>s.values)), step=niceStep(mx/4), max=Math.ceil(mx/step)*step;
+  const x=i=>m.l+i*iw/(n-1), y=v=>m.t+ih-(v/max)*ih;
+  let g=yAxis(W,m,ih,max,step,c.yfmt||axisFmt);
+  c.labels.forEach((l,i)=>{ if((n-1-i)%every===0) g+=`<text x="${x(i)}" y="${H-6}" text-anchor="middle" font-size="11" fill="#8a8984">${l}</text>`; });
+  c.series.forEach((s,si)=>{
+    if(si===0) g+=`<path d="M${x(0)} ${y(0)} ${s.values.map((v,i)=>`L${x(i)} ${y(v)}`).join(' ')} L${x(n-1)} ${y(0)}Z" fill="${s.color}" opacity=".08"/>`;
+    g+=`<path d="${s.values.map((v,i)=>`${i?'L':'M'}${x(i)} ${y(v)}`).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const lv=s.values[n-1]; g+=`<circle cx="${x(n-1)}" cy="${y(lv)}" r="4.5" fill="${s.color}" stroke="#fff" stroke-width="2"/><text x="${x(n-1)+10}" y="${y(lv)+4}" font-size="12" fill="#0b0b0b"><tspan font-weight="600">${(c.fmt||money)(lv)}</tspan>${narrow?'':`<tspan fill="#52514e"> ${s.name}</tspan>`}</text>`;
+  });
+  g+=`<line id="${id}-xh" x1="0" x2="0" y1="${m.t}" y2="${m.t+ih}" stroke="#9a9993" stroke-width="1" style="display:none"/>`;
+  const bw=iw/(n-1);
+  c.labels.forEach((l,i)=>{ g+=`<rect x="${x(i)-bw/2}" y="${m.t}" width="${bw}" height="${ih}" fill="transparent" onmousemove="tipLine(event,'${id}',${i},${x(i)})" onmouseleave="hideTip('${id}')"/>`; });
+  return `<svg width="${W}" height="${H}" role="img" aria-label="${c.title||'chart'}">${g}</svg>`;
+}
+function tipLine(e,id,i,xx){ const c=CH[id]; const xh=document.getElementById(id+'-xh'); xh.setAttribute('x1',xx); xh.setAttribute('x2',xx); xh.style.display='';
+  showTip(e, `<div class="tt">${c.labels[i]}</div>`+c.series.map(s=>`<div class="tr"><span><i class="sw" style="background:${s.color}"></i> ${s.name}</span><b>${(c.fmt||money)(s.values[i])}</b></div>`).join('')+(c.extra?c.extra(i):'')); }
+function stackSVG(id,W,c){
+  const H=c.h||240, m={l:40,r:12,t:12,b:26}, iw=W-m.l-m.r, ih=H-m.t-m.b, n=c.labels.length;
+  const tot=c.labels.map((_,i)=>c.series.reduce((a,s)=>a+s.values[i],0));
+  const mx=Math.max(...tot), step=niceStep(mx/4), max=Math.ceil(mx/step)*step;
+  const band=iw/n, bw=Math.min(24, band*0.62), y=v=>m.t+ih-(v/max)*ih;
+  let g=yAxis(W,m,ih,max,step,v=>v);
+  c.labels.forEach((l,i)=>{
+    const cx=m.l+band*i+band/2, x0=cx-bw/2; let base=0;
+    const topIdx = c.series.map((s,k)=>s.values[i]>0?k:-1).filter(k=>k>=0).pop();
+    c.series.forEach((s,k)=>{ const v=s.values[i]; if(!v) return; const yb=y(base)-(base>0?2:0), yt=y(base+v); base+=v;
+      if(k===topIdx){ const r=Math.min(4,(yb-yt)/2); g+=`<path d="M${x0} ${yb} L${x0} ${yt+r} Q${x0} ${yt} ${x0+r} ${yt} L${x0+bw-r} ${yt} Q${x0+bw} ${yt} ${x0+bw} ${yt+r} L${x0+bw} ${yb}Z" fill="${s.color}"/>`; }
+      else g+=`<rect x="${x0}" y="${yt}" width="${bw}" height="${Math.max(0,yb-yt)}" fill="${s.color}"/>`; });
+    if(i===n-1) g+=`<text x="${cx}" y="${y(tot[i])-6}" text-anchor="middle" font-size="11" font-weight="600" fill="#0b0b0b">${tot[i]}</text>`;
+    if((n-1-i)%Math.max(1,Math.ceil(46/band))===0) g+=`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="11" fill="#8a8984">${l}</text>`;
+    g+=`<rect x="${m.l+band*i}" y="${m.t}" width="${band}" height="${ih}" fill="transparent" onmousemove="tipStack(event,'${id}',${i})" onmouseleave="hideTip()"/>`;
+  });
+  return `<svg width="${W}" height="${H}" role="img" aria-label="${c.title||'chart'}">${g}</svg>`;
+}
+function tipStack(e,id,i){ const c=CH[id]; const t=c.series.reduce((a,s)=>a+s.values[i],0); showTip(e, `<div class="tt">${c.labels[i]}</div>`+c.series.map(s=>`<div class="tr"><span><i class="sw" style="background:${s.color}"></i> ${s.name}</span><b>${s.values[i]}</b></div>`).join('')+`<div class="tr" style="border-top:1px solid #eee;margin-top:4px;padding-top:4px"><span>Total</span><b>${t}</b></div>`); }
+function hbarSVG(id,W,c){
+  const stackLbl=(c.lw||170)>W*0.4, rowH=stackLbl?44:34, lw=stackLbl?0:(c.lw||170), m={l:stackLbl?0:lw,r:stackLbl?80:90,t:4,b:4}, H=c.items.length*rowH+m.t+m.b, iw=W-m.l-m.r;
+  const max=Math.max(...c.items.map(d=>d.value))||1; let g='';
+  c.items.forEach((d,i)=>{ const yc=m.t+i*rowH+(stackLbl?30:rowH/2), w=Math.max(2,d.value/max*iw), x0=m.l, th=stackLbl?12:16, r=4;
+    g+= stackLbl ? `<text x="0" y="${yc-12}" font-size="12" fill="#52514e">${d.label}</text>` : `<text x="${m.l-10}" y="${yc+4}" text-anchor="end" font-size="12" fill="#52514e">${d.label}</text>`;
+    g+=`<path d="M${x0} ${yc-th/2} L${x0+w-r} ${yc-th/2} Q${x0+w} ${yc-th/2} ${x0+w} ${yc-th/2+r} L${x0+w} ${yc+th/2-r} Q${x0+w} ${yc+th/2} ${x0+w-r} ${yc+th/2} L${x0} ${yc+th/2}Z" fill="${c.color||'var(--s1)'}"/>`;
+    g+=`<text x="${x0+w+8}" y="${yc+4}" font-size="12" font-weight="600" fill="#0b0b0b">${(c.fmt||num)(d.value)}</text>`;
+    g+=`<rect x="0" y="${m.t+i*rowH}" width="${W}" height="${rowH}" fill="transparent" onmousemove="showTip(event,'<div class=tt>${d.label}</div>${(c.fmt||num)(d.value)}${c.total?' · '+pct(d.value/c.total)+' of total':''}')" onmouseleave="hideTip()"/>`; });
+  document.getElementById(id).style.height=H+'px';
+  return `<svg width="${W}" height="${H}" role="img" aria-label="${c.title||'chart'}">${g}</svg>`;
+}
+function showTip(e,html){ const t=document.getElementById('tip'); t.innerHTML=html; t.style.display='block'; const w=t.offsetWidth; let x=e.clientX+14; if(x+w>innerWidth-8) x=e.clientX-w-14; t.style.left=x+'px'; t.style.top=(e.clientY+14)+'px'; }
+function hideTip(id){ document.getElementById('tip').style.display='none'; if(id){const xh=document.getElementById(id+'-xh'); if(xh) xh.style.display='none';} }
+
+/* =========================================================================
+   LOGIN + PUBLIC TRACKING
+   ========================================================================= */
+function loginPage(){
+  const card=(r,title,badge,pts)=>`<div class="rolecard" onclick="login('${r}')"><span class="badge">${badge}</span><div class="rt">${title}</div><ul>${pts.map(p=>`<li>${p}</li>`).join('')}</ul><div class="sp"></div><button class="btn pri" style="margin-top:10px">Login as ${title} →</button></div>`;
+  return `<div class="login"><div class="login-box">
+   <div class="row wrap" style="margin-bottom:6px"><div class="logo"><div class="mk">PS</div>${BRAND}</div><div class="sp"></div><button class="btn" onclick="S.role='track';nav()">📦 Track a parcel (receiver view)</button></div>
+   <h2 style="font-size:26px;margin:18px 0 4px">Parcel delivery for every shopkeeper: within the city and across India by train</h2>
+   <p class="sec" style="margin:0 0 22px">Clickable demo. Choose a login to see that user's screens. In the real app every login uses a mobile OTP.</p>
+   <div class="grid g4">
+    ${card('admin','Admin','Web · Desktop & mobile',['Decide method & approve shop requests','Dashboard, earnings & profit','All bookings & manual operations','Dispatch: own boys or Porter','Railway agents, stations, trains','Users, payouts, pricing','10+ reports with Excel/PDF export','WhatsApp & SMS settings'])}
+    ${card('shop','Shopkeeper','Web · Desktop & mobile',['Enter pickup & drop address with map pin','Admin decides method & price','Track with photo proof','Wallet, payments, invoices','Address book & support'])}
+    ${card('boy','Delivery Boy','Mobile web',['Go online/offline','Jobs assigned by admin','Camera photo/video proof','Receiver OTP at delivery','Earnings & payouts'])}
+    ${card('agent','Railway Agent','Mobile web',['Receive parcels at station','Enter train & PWB details','Upload loading photos/videos','Mark arrivals at destination','Hand over for final delivery'])}
+   </div>
+   <p class="small muted" style="margin-top:18px">All names, numbers and amounts are sample data for demonstration.</p>
+  </div></div>`;
+}
+function trackPage(){
+  const id = S.trackId || D3.id; const s = SH.find(x=>x.id===id.toUpperCase().trim());
+  return `<div class="track-hero"><div class="row"><div class="logo"><div class="mk">PS</div>${BRAND}</div><div class="sp"></div><button class="btn" onclick="logout()">← Back to logins</button></div>
+   <div class="card" style="margin-top:20px"><h3>Track your parcel</h3><div class="sub">This is the link the receiver gets on WhatsApp and SMS. No login needed.</div>
+   <div class="row"><input class="inp" id="tid" value="${id}" placeholder="Tracking ID e.g. PS24101"><button class="btn pri" onclick="S.trackId=document.getElementById('tid').value.trim().toUpperCase();nav()">Track</button></div>
+   <div class="small muted" style="margin-top:6px">Try: ${D3.id} (railway, on train) · ${D1.id} (in-city) · ${SH[30].id}</div></div>
+   ${s?`<div class="card" style="margin-top:16px"><div class="row wrap"><div><div class="small muted">Tracking ID</div><h2>${s.id}</h2></div><div class="sp"></div>${typeTag(s)} ${chip(s.status)} ${s.delayed?chip('Running late','warn'):''}</div>
+   <div class="grid g2" style="margin:14px 0"><div class="kv"><div>From</div><div>${s.shop.name}, ${s.from.city}</div><div>To</div><div>${s.to.name}, ${s.to.city}</div></div>
+   <div class="kv"><div>Expected</div><div>${s.status==='Delivered'?'Delivered':fdt(addMin(s.created, s.type==='incity'?120:60*(s.legs[1].train.hours+8)))}</div>${s.type==='railway'?`<div>Train</div><div>${s.legs[1].train.no} · ${s.legs[1].train.name}</div>`:''}</div></div>
+   ${timeline(s,false)}<div class="pricebox small" style="margin-top:10px">Your delivery OTP is sent by SMS when the parcel is out for delivery. Share it only with the delivery person.</div></div>`:`<div class="card" style="margin-top:16px">No parcel found with this ID.</div>`}</div>`;
+}
+
+/* =========================================================================
+   SHIPMENT DETAIL (shared)
+   ========================================================================= */
+function timeline(s, full=true){
+  const done = s.events.map(e=>`<div class="ev ${e.st==='Delivered'?'done':''}"><div class="t">${e.st}</div><div class="m">${fdt(e.t)} · ${e.by}${e.note?' · '+e.note:''}</div>${e.media.length?`<div class="medias">${e.media.map(mediaThumb).join('')}</div>`:''}${e.train?`<div class="small sec" style="margin-top:4px">Train ${e.train}</div>`:''}</div>`).join('');
+  const todo = ['Cancelled','Rejected'].includes(s.status) ? '' : s.flow.slice(s.stage+1).map(st=>`<div class="ev todo"><div class="t">${st}</div></div>`).join('');
+  return `<div class="tl">${done}${full?todo:todo}</div>`;
+}
+function legCard(s,l){
+  const curLeg = legFor(s, s.status)===l && s.status!=='Delivered';
+  if(l.kind==='train'){ const t=l.train; return `<div class="leg ${curLeg?'cur':''}"><div class="ln">Leg 2 · Train</div><b>${l.from.split(' (')[0]} → ${l.to.split(' (')[0]}</b>
+    <div class="small sec">Train ${t.no} · ${t.name}</div><div class="small sec">${t.pwb} · ${t.coach} · ~${t.hours}h</div><div class="small sec">Agents: ${l.agentO.name} → ${l.agentD.name}</div>
+    <div class="small" style="margin-top:4px">Railway ${money(l.rail)} + agent fee ${money(l.agentFee)}</div></div>`; }
+  return `<div class="leg ${curLeg?'cur':''}"><div class="ln">Leg ${l.n} · Road (${l.city})</div><b>${l.mode==='Porter'?'Porter · '+l.porter.vehicle:'Own boy · '+l.boy.name}</b>
+   <div class="small sec">${l.mode==='Porter'?`${l.porter.crn} · Driver ${l.porter.driver}`:l.boy.phone}</div><div class="small sec">${l.km} km · ${l.from.length>38?l.from.slice(0,38)+'…':l.from}</div>
+   <div class="small" style="margin-top:4px">Cost ${money(l.cost)}</div></div>`;
+}
+function infoCards(s, admin){
+  const req = isReq(s)||s.status==='Rejected';
+  return `<div class="grid g3">
+     <div class="card"><h3>Pickup location</h3><div class="kv" style="margin-top:8px"><div>Shop</div><div>${s.shop.name}</div><div>Contact</div><div>${s.from.name||s.shop.owner} · ${s.from.phone||s.shop.phone}</div><div>Address</div>${addrHtml(s.from)}</div></div>
+     <div class="card"><h3>Drop location</h3><div class="kv" style="margin-top:8px"><div>Receiver</div><div>${s.to.name}</div><div>Phone</div><div>${s.to.phone}</div><div>Address</div>${addrHtml(s.to)}${admin&&!req?`<div>Delivery OTP</div><div class="id">${s.otp}</div>`:''}</div></div>
+     <div class="card"><h3>Parcel ${s.fragile?chip('Fragile','warn'):''}</h3><div class="kv" style="margin-top:8px"><div>Item type</div><div>${s.cat}</div><div>Contents</div><div>${s.items}</div><div>Boxes</div><div>${s.qty} × ${s.dims}</div><div>Weight</div><div>${s.weight} kg actual · ${s.volW} kg volumetric</div><div>Chargeable</div><div><b>${Math.max(s.weight,s.volW)} kg</b></div><div>Vehicle</div><div>${s.vehicle}</div><div>Pickup slot</div><div>${s.pickup}</div><div>Declared value</div><div>${money(s.declared)}</div><div>Requested</div><div>${fdt(s.created)} by ${s.bookedBy}</div><div>Payment</div><div>${req?'After approval':s.pay+' · Paid'}</div></div>${s.photo?`<div class="medias">${mediaThumb(s.photo)}</div>`:''}</div>
+   </div>${s.reqNote?`<div class="pricebox small" style="margin-top:12px"><b>Note from shopkeeper:</b> ${s.reqNote}</div>`:''}`;
+}
+function showShipment(id){
+  const s = SH.find(x=>x.id===id); const admin = S.role==='admin';
+  if(admin && isReq(s)) return showRequest(id);
+  const req = isReq(s), rej = s.status==='Rejected';
+  const profit = s.price - s.cost;
+  modal(`<div class="mh"><div><div class="small muted">Tracking ID</div><h2>${s.id}</h2></div>${typeTag(s)} ${chip(s.status)} ${s.delayed?chip('Delayed','warn'):''}<div class="sp"></div>
+    ${admin?`<button class="btn hide-m" onclick="toast('WhatsApp update sent to shopkeeper and receiver')">Send WhatsApp update</button><button class="btn hide-m" onclick="toast('Label PDF downloaded (demo)')">Print label</button>`:(req||rej?'':`<button class="btn" onclick="toast('Invoice downloaded (demo)')">Invoice</button>`)}<button class="x" onclick="closeModal()">×</button></div>
+   <div class="mb">
+   ${req?`<div class="banner warn"><b>Waiting for admin approval.</b> Admin will confirm the final price and pickup time, usually within 15 minutes. You will get a WhatsApp message.<div style="margin-top:8px"><button class="btn sm danger" onclick="cancelRequest('${s.id}')">Cancel request</button></div></div>`:''}
+   ${rej?`<div class="banner bad"><b>Request rejected.</b> ${s.rejectReason||''}</div>`:''}
+   ${infoCards(s, admin)}
+   <h3 style="margin:18px 0 8px">Delivery legs</h3>${req||rej?'<div class="pricebox small">The pickup partner (own delivery boy or Porter) is assigned by admin after approval.</div>':`<div class="legs" style="grid-template-columns:repeat(${s.legs.length},1fr)">${s.legs.map(l=>legCard(s,l)).join('')}</div>`}
+   <div class="grid g21" style="margin-top:18px"><div><h3 style="margin-bottom:10px">Timeline & proof</h3>${timeline(s)}</div>
+    <div>${admin?`<div class="card" style="margin-bottom:12px"><h3>Price & profit</h3><div class="pricebox" style="margin-top:8px">
+      <div class="r"><span>Charged to shopkeeper</span><b>${money(s.price)}</b></div>
+      ${s.legs.map(l=>l.kind==='train'?`<div class="r"><span>Railway charges</span><span>−${money(l.rail)}</span></div><div class="r"><span>Agent fees (both ends)</span><span>−${money(l.agentFee)}</span></div>`:`<div class="r"><span>Leg ${l.n} · ${l.mode==='Porter'?'Porter fare':'Boy payout'}</span><span>−${money(l.cost)}</span></div>`).join('')}
+      <div class="r t"><span>Profit</span><span style="color:var(--good-x)">${money(profit)} (${pct(profit/s.price)})</span></div></div></div>
+     <div class="card"><h3>Admin actions</h3><div class="sub">Do any step manually on behalf of anyone</div>
+      <div class="field"><label class="f">Update status</label><div class="row"><select class="inp" id="mst">${s.flow.map((f,i)=>`<option ${i===s.stage+1?'selected':''}>${f}</option>`).join('')}<option>Cancelled</option><option>On Hold</option><option>Damaged</option></select><button class="btn pri" onclick="adminSetStatus('${s.id}')">Save</button></div></div>
+      <label class="upl small"><input type="file" accept="image/*,video/*" onchange="adminUpload('${s.id}',this)">⬆ Upload photo / video proof</label>
+      <div class="row wrap" style="margin-top:10px"><button class="btn sm" onclick="toast('Reassigned to Suresh Yadav (demo)')">Reassign</button><button class="btn sm" onclick="toast('New Porter order created (demo)')">Create Porter order</button><button class="btn sm" onclick="toast('Delay flag added; customer informed')">Flag delay</button><button class="btn sm danger" onclick="toast('Cancelled. Refund ₹${s.price} sent to wallet (demo)')">Cancel & refund</button></div></div>`
+     :`<div class="card"><h3>${req?'Estimated price':'Price paid'}</h3><div class="pricebox" style="margin-top:8px"><div class="r t"><span>Total (incl. GST)</span><span>${money(s.price)}</span></div></div>${req?'<div class="small muted" style="margin-top:6px">The final price is confirmed by admin before pickup.</div>':''}</div>`}</div></div></div>`);
+}
+function adminSetStatus(id){
+  const s=SH.find(x=>x.id===id); const v=document.getElementById('mst').value; const i=s.flow.indexOf(v);
+  if(i>=0){ for(let k=s.stage+1;k<=i;k++){ pushEvent(s,s.flow[k],new Date()); s.events.at(-1).by='Admin · Anil Kumar (manual)'; } if(i<s.stage){ s.events.push({st:v,t:new Date(),by:'Admin · Anil Kumar (manual)',media:[]}); } s.stage=i; s.status=v; }
+  else { s.status=v; s.events.push({st:v,t:new Date(),by:'Admin · Anil Kumar (manual)',media:[]}); }
+  toast(`${id}: status set to "${v}"; WhatsApp sent`); render(); showShipment(id);
+}
+function adminUpload(id, inp){
+  const f=inp.files[0]; if(!f) return; const s=SH.find(x=>x.id===id);
+  s.events.push({st:'Proof uploaded by admin',t:new Date(),by:'Admin · Anil Kumar',media:[{label:f.name.slice(0,18),kind:f.type.startsWith('video')?'video':'img',url:URL.createObjectURL(f),t:new Date(),gps:'—'}]});
+  toast('Media uploaded to '+id); showShipment(id);
+}
+
+/* =========================================================================
+   ADMIN PAGES
+   ========================================================================= */
+const PAGES = {};
+PAGES.dashboard = () => {
+  const today=D_IN.at(-1)+D_RL.at(-1), yday=D_IN.at(-2)+D_RL.at(-2);
+  const active=SH.filter(isLive); const reqs=SH.filter(isReq);
+  const delayed=SH.filter(s=>s.delayed && s.status!=='Delivered');
+  const groups=[['Waiting for pickup',['Approved & Assigned']],['Picked up / going to station',['Picked Up','Picked Up from Shop','Handed to Origin Agent']],['With origin agent',['Received by Origin Agent']],['On train',['Loaded on Train','In Transit by Train']],['With destination agent',['Arrived at Destination','Received by Destination Agent','Leg 3 Assigned']],['Out for delivery',['Out for Delivery']]];
+  const stageItems=groups.map(g=>({label:g[0],value:active.filter(s=>g[1].includes(s.status)).length}));
+  const revDelta=(REV[LAST]-REV[LAST-1])/REV[LAST-1];
+  const routes={}; SH.filter(s=>s.type==='railway').forEach(s=>{const k=s.from.city+' → '+s.to.city; routes[k]=routes[k]||{n:0,rev:0,pr:0}; routes[k].n++; routes[k].rev+=s.price; routes[k].pr+=s.price-s.cost;});
+  const top=Object.entries(routes).sort((a,b)=>b[1].n-a[1].n).slice(0,6);
+  return `<div class="grid g6">
+    ${kpi("Today's bookings", today, `${today>=yday?'▲':'▼'} ${Math.abs(today-yday)} vs yesterday`, today>=yday?'up':'down')}
+    ${kpi('Active parcels', active.length + 186, `${active.filter(s=>s.type==='railway').length+71} by railway`)}
+    <div class="card kpi" style="cursor:pointer;border-color:#f0d58c;background:#fffaf0" onclick="go('requests')"><div class="lbl">Shop requests waiting</div><div class="val">${reqs.length}</div><div class="dl down">Review & approve →</div></div>
+    ${kpi('Delayed', delayed.length+3, 'Needs attention', 'down')}
+    ${kpi('Revenue · '+MONTHS[LAST], lakh(REV[LAST]), `▲ ${pct(revDelta)} vs ${MONTHS[LAST-1]}`, 'up')}
+    ${kpi('Net profit · '+MONTHS[LAST], lakh(PROFIT[LAST]), `Margin ${pct(PROFIT[LAST]/REV[LAST])}`, 'up')}
+  </div>
+  <div class="grid g21" style="margin-top:16px">
+    <div class="card"><div class="ch"><div><h3>Revenue and net profit grew every month</h3><div class="sub">Last 12 months, ₹ (sample)</div></div><div class="sp"></div><button class="btn sm" onclick="go('earnings')">Earnings →</button></div>
+      ${chartDiv('dRev',{kind:'line',labels:MONTHS,series:[{name:'Revenue',color:'var(--s1)',values:REV},{name:'Net profit',color:'var(--s2)',values:PROFIT}],fmt:lakh,h:250,title:'Revenue and profit'})}</div>
+    <div class="card"><h3>Where active parcels are now</h3><div class="sub">Live count by stage</div>${chartDiv('dStage',{kind:'hbar',items:stageItems,lw:190,title:'Parcels by stage'})}
+      <button class="btn sm" style="margin-top:8px" onclick="go('dispatch')">Open dispatch →</button></div>
+  </div>
+  <div class="grid g21" style="margin-top:16px">
+    <div class="card"><h3>Bookings per day</h3><div class="sub">Last 14 days, in-city vs railway</div>
+      ${chartDiv('dDaily',{kind:'stack',labels:DAYS,series:[{name:'In-city',color:'var(--s1)',values:D_IN},{name:'Railway',color:'var(--s2)',values:D_RL}],h:220,title:'Daily bookings'})}</div>
+    <div class="card"><h3>Alerts</h3><div class="sub">Things that need action</div>
+      ${reqs.length?`<div class="alert">${chip('Requests','warn')}<div>${reqs.length} shop requests waiting for approval<br><a class="small" href="#" onclick="go('requests');return false">Review now →</a></div></div>`:''}
+      ${delayed.slice(0,3).map(s=>`<div class="alert">${chip('Delay','warn')}<div><b class="id">${s.id}</b> · Train ${s.legs[1].train.no} running ~${rint(1,4)}h late<br><span class="small muted">${s.from.city} → ${s.to.city} · receiver informed on WhatsApp</span></div></div>`).join('')}
+      <div class="alert">${chip('KYC','info')}<div>2 shopkeepers waiting for KYC approval<br><a class="small" onclick="S.tab.users='shop';go('users');return false" href="#">Review →</a></div></div>
+      <div class="alert">${chip('Payout','info')}<div>Weekly payouts due: ${money(48650)} to 9 delivery boys and 6 agents<br><a class="small" href="#" onclick="go('payouts');return false">Open payouts →</a></div></div>
+      <div class="alert">${chip('Damage','bad')}<div>1 parcel marked damaged at Lucknow (LKO)<br><span class="small muted">Photos uploaded by Anwar Hussain</span></div></div></div>
+  </div>
+  <div class="grid g21" style="margin-top:16px">
+    <div class="card"><div class="ch"><div><h3>Latest bookings</h3><div class="sub">Click a row for full detail and photo proof</div></div><div class="sp"></div><button class="btn sm" onclick="go('bookings')">View all →</button></div>
+      ${table(['Tracking ID','Booked','Shopkeeper','Route','Type','Status',{t:'Amount',num:1}], SH.slice(0,8).map(s=>({click:`openShipment('${s.id}')`,cells:[`<span class="id">${s.id}</span>`,fdt(s.created),s.shop.name,`${s.from.city} → ${s.to.city}`,typeTag(s),chip(s.status),money(s.price)]})))}</div>
+    <div class="card"><h3>Team on duty</h3><div class="sub">Delivery boys online now</div>
+      ${BOYS.map(b=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line2)"><span class="dot ${b.online?(b.busy?'busy':'on'):''}"></span><div class="sp">${b.name}<div class="small muted">${b.city}</div></div><span class="small sec">${b.online?(b.busy?'On a job':'Available'):'Offline'}</span></div>`).join('')}
+      <h3 style="margin-top:14px">Top railway routes</h3>
+      ${top.map(([k,v])=>`<div class="row small" style="padding:5px 0"><span class="sp">${k}</span><b>${v.n}</b><span class="muted">parcels</span></div>`).join('')}</div>
+  </div>`;
+};
+
+PAGES.requests = () => {
+  const t=curTab('rq','pending');
+  const pend=SH.filter(isReq), appr=SH.filter(s=>s.stage>=1 && s.status!=='Cancelled' && Date.now()-s.created<864e5*2), rej=SH.filter(s=>s.status==='Rejected');
+  const list = t==='pending'?pend : t==='approved'?appr.slice(0,12) : rej;
+  const oldest = pend.length ? ago(new Date(Math.min(...pend.map(s=>+s.created)))) : '—';
+  return `<div class="grid g4">${kpi('Waiting for approval',pend.length,'Oldest: '+oldest,'down')}${kpi('Approved today',appr.length+18)}${kpi('Rejected today',rej.length)}${kpi('Avg approval time','11 min')}</div>
+  <div class="banner warn" style="margin:14px 0">Shopkeepers cannot book directly. Each request is checked here: confirm the price, choose an own delivery boy or Porter, then approve. The shopkeeper gets the final price on WhatsApp and the amount is taken from the wallet.</div>`
+  + tabs('rq',[['pending',`Pending (${pend.length})`],['approved','Approved'],['rejected','Rejected']])
+  + `<div class="grid g3">${list.map(reqCard).join('') || '<div class="card muted">Nothing here</div>'}</div>`;
+};
+function reqCard(s){
+  return `<div class="card"><div class="row"><b class="id">${s.id}</b>${typeTag(s)}<span class="sp"></span>${chip(s.status)}</div>
+   <div style="margin-top:8px"><b>${s.shop.name}</b> <span class="small muted">· ${s.shop.city}</span></div>
+   <div class="small sec">To ${s.to.name}, ${s.to.city}${s.type==='railway'?' (by train)':''}</div>
+   <div class="small muted">${s.cat} · ${s.qty} box · ${s.weight} kg (vol. ${s.volW} kg)${s.fragile?' · Fragile':''}</div><div class="small muted">Pickup ${s.pickup} · ${ago(s.created)}</div>
+   ${s.reqNote?`<div class="small" style="margin-top:6px;color:var(--text2)">“${s.reqNote}”</div>`:''}
+   ${s.status==='Rejected'?`<div class="small" style="margin-top:6px;color:var(--bad-x)">${s.rejectReason}</div>`:''}
+   <div class="row wrap" style="margin-top:10px"><span class="small muted">Estimate</span><b>${money(s.price)}</b><span class="sp"></span>${isReq(s)?`<button class="btn sm pri" onclick="openRequest('${s.id}')">Review & approve</button>`:`<button class="btn sm" onclick="openShipment('${s.id}')">View</button>`}</div></div>`;
+}
+function showRequest(id){
+  const s=SH.find(x=>x.id===id), fc=s.from.city, tc=s.to.city, same=fc===tc, dk=distKm(s.from,s.to);
+  S.rqm=S.rqm||{}; const m=S.rqm[id]||(same?'incity':'railway');
+  const ao=agentIn(fc), ad=agentIn(tc);
+  const can={incity:same, road:!same&&dk<=500, railway:!same&&!!ao&&!!ad};
+  const opt=c=> boyIn(c).map(b=>`<option value="own:${b.id}">Own boy · ${b.name} ${b.online?(b.busy?'(on a job)':'(free)'):'(offline)'}</option>`).join('')+`<option value="porter">Porter (booked through API)</option>`;
+  const mc=(k,title,sub)=>`<button type="button" class="cb ${m===k?'on':''}" ${can[k]?'':'disabled'} onclick="S.rqm['${id}']='${k}';showRequest('${id}')">${title}<small>${sub}</small></button>`;
+  const est = m==='railway' ? r10((190+r10(60+s.weight*14)+(ao?ao.fee:0)+(ad?ad.fee:0)+200)*1.22) : m==='road' ? r10(dk*21*1.22) : r10((70+dk*13+(s.weight>10?60:0))*1.24);
+  const cost=Math.round(est/1.22);
+  const pTo = m==='railway' ? ao.loc : s.to;
+  modal(`<div class="mh"><div><div class="small muted">Shop request · ${ago(s.created)}</div><h2>${s.id}</h2></div>${typeTag(s)} ${chip(s.status)}<div class="sp"></div><button class="x" onclick="closeModal()">×</button></div>
+  <div class="mb">${infoCards(s,true)}
+   <div class="pricebox small" style="margin-top:12px">Distance ≈ <b>${dk} km</b> by road · ${same?'Same city ('+fc+')':'Different cities: <b>'+fc+' → '+tc+'</b>'}</div>
+   <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>1. Decide delivery method</h3><div class="sub">The shopkeeper only gave the addresses. You choose how it travels.</div>
+     <div class="chips" style="margin-bottom:14px">${mc('incity','🛵 In-city','Porter or own boy · same city only')}${mc('road','🚚 Direct road',dk>500?'Too far for road ('+dk+' km)':'One vehicle, door to door · '+dk+' km')}${mc('railway','🚆 Railway','Via agents'+(ao&&ad?' · '+ao.station.split(' (')[0]+' → '+ad.station.split(' (')[0]:''))}</div>
+     <h3>2. Assign</h3>
+     ${m==='railway'?`<div class="field"><label class="f">Leg 1: shop → ${ao.station}</label><select class="inp" id="ra1">${opt(fc)}</select></div>
+       <div class="pricebox small" style="margin-bottom:12px">Train leg: <b>${ao.agency}</b> (${ao.station}) → <b>${ad.agency}</b> (${ad.station})</div>
+       <div class="field"><label class="f">Leg 3: ${ad.station} → receiver</label><select class="inp" id="ra3"><option value="auto">Decide when the parcel arrives (auto)</option>${opt(tc)}</select></div>`
+     :`<div class="field"><label class="f">${m==='road'?'Vehicle (pickup in '+fc+', drop in '+tc+')':'Pickup & delivery by'}</label><select class="inp" id="ra1">${opt(fc)}</select></div>`}
+     <div class="grid g2"><div class="field"><label class="f">Pickup time</label><select class="inp"><option>${s.pickup} (requested)</option><option>Today, within 60 min</option><option>Tomorrow, 10 AM–12 PM</option></select></div>
+      <div class="field"><label class="f">Final price (₹)</label><input class="inp" id="rprice" type="number" inputmode="numeric" value="${est}"></div></div>
+     <label class="row small" style="margin-bottom:12px"><input type="checkbox" checked> Take from wallet (balance ${money(s.shop.wallet)}), else send payment link</label>
+     <button class="btn ok block" onclick="approveRequest('${s.id}')">Approve & assign</button>
+     <details class="api"><summary>Porter API data · exact pickup & drop${m==='railway'?' (Leg 1)':''}</summary><pre>${porterPayload(s.id,s.from,pTo,s.fragile)}</pre><div class="small muted" style="padding:0 12px 10px">Sent when Porter is chosen. Sample format; final field names as per Porter's API documentation.</div></details></div>
+    <div class="card"><h3>Or reject request</h3><div class="sub">The shopkeeper gets the reason on WhatsApp</div>
+     <div class="field"><select class="inp" id="rrs"><option>Pincode not serviceable</option><option>Parcel too heavy or restricted item</option><option>No train or agent on this route</option><option>Incomplete address</option><option>Other</option></select></div>
+     <textarea class="inp" rows="2" id="rrn" placeholder="Note to shopkeeper (optional)"></textarea>
+     <button class="btn danger block" style="margin-top:10px" onclick="rejectRequest('${s.id}')">Reject request</button>
+     <div class="pricebox small" style="margin-top:14px"><b>Price check (${m==='railway'?'Railway':m==='road'?'Direct road':'In-city'})</b><div class="r"><span>Price to shopkeeper</span><span>${money(est)}</span></div><div class="r"><span>Our cost (estimated)</span><span>${money(cost)}</span></div><div class="r t"><span>Profit</span><span style="color:var(--good-x)">${money(est-cost)}</span></div></div></div>
+   </div></div>`);
+}
+function approveRequest(id){
+  const s=SH.find(x=>x.id===id), m=(S.rqm&&S.rqm[id])||(s.from.city===s.to.city?'incity':'railway');
+  const pickV=v=>!v||v==='auto'?{}:v==='porter'?{mode:'Porter'}:{mode:'Own',boy:BOYS.find(b=>b.id===v.split(':')[1])};
+  const a1=pickV(document.getElementById('ra1').value), a3=pickV((document.getElementById('ra3')||{}).value);
+  s.type = m==='railway'?'railway':'incity';
+  makeLegs(s,{mode1:a1.mode,boy1:a1.boy,mode3:a3.mode,boy3:a3.boy});
+  s.price = +document.getElementById('rprice').value || s.price;
+  advance(s,'Approved & Assigned',null,null,{note:(m==='railway'?'Railway':m==='road'?'Direct road':'In-city')+' · final price '+money(s.price)+' · taken from wallet'});
+  s.shop.wallet=Math.max(0,s.shop.wallet-s.price);
+  const L=s.legs[0];
+  closeModal(); render();
+  toast(`${s.id} approved as ${m==='railway'?'Railway':m==='road'?'Direct road':'In-city'} · ${L.mode==='Porter'?'Porter order '+L.porter.crn+' booked':L.boy.name+' assigned'} · shopkeeper informed`);
+}
+function rejectRequest(id){
+  const s=SH.find(x=>x.id===id); const n=document.getElementById('rrn').value;
+  s.status='Rejected'; s.rejectReason=document.getElementById('rrs').value+(n?'. '+n:'');
+  s.events.push({st:'Rejected',t:new Date(),by:'Admin · Anil Kumar',media:[],note:s.rejectReason});
+  closeModal(); render(); toast(`${s.id} rejected · reason sent to ${s.shop.name} on WhatsApp`);
+}
+function cancelRequest(id){
+  const s=SH.find(x=>x.id===id); s.status='Cancelled'; s.events.push({st:'Cancelled',t:new Date(),by:s.shop.owner+' (Shopkeeper)',media:[],note:'Request cancelled before approval'});
+  closeModal(); render(); toast('Request '+id+' cancelled');
+}
+
+PAGES.bookings = () => {
+  const f=S.filter;
+  const rows=SH.filter(s=>(!f.type||s.type===f.type)&&(!f.status||(f.status==='Active'?isLive(s):s.status===f.status))&&(!f.city||s.from.city===f.city||s.to.city===f.city)&&(!f.q||(s.id+s.shop.name+s.to.name+s.to.phone+s.shop.phone).toLowerCase().includes(f.q.toLowerCase())));
+  const sel=(k,opts)=>`<select class="inp" style="width:auto" onchange="S.filter.${k}=this.value;render()">${opts.map(o=>`<option value="${o[0]}" ${f[k]===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`;
+  return `<div class="row wrap filters" style="margin-bottom:12px">
+    <input class="inp" style="width:260px" value="${f.q}" placeholder="Search ID, shop, receiver, phone" oninput="S.filter.q=this.value;clearTimeout(window._q);window._q=setTimeout(render,250)">
+    ${sel('type',[['','All methods'],['incity','In-city / direct road'],['railway','Railway']])}
+    ${sel('status',[['','All statuses'],['Active','Active (not delivered)'],['Request Raised','Pending approval'],['Approved & Assigned','Approved & Assigned'],['Rejected','Rejected'],['Delivered','Delivered'],['Cancelled','Cancelled'],['Loaded on Train','Loaded on Train'],['Out for Delivery','Out for Delivery']])}
+    ${sel('city',[['','All cities'],...CITY_NAMES.map(c=>[c,c])])}
+    <div class="sp"></div><span class="small muted">${rows.length} bookings</span>
+    <button class="btn" onclick="toast('Exported ${rows.length} rows to Excel (demo)')">Export Excel</button><button class="btn" onclick="bulkUpload('bookings')">Bulk upload</button></div>
+   ${table(['Tracking ID','Booked on','Shopkeeper','From → To','Type','Mode','Weight','Status',{t:'Charged',num:1},{t:'Cost',num:1},{t:'Profit',num:1}],
+     rows.map(s=>({click:`openShipment('${s.id}')`,cells:[`<span class="id">${s.id}</span>`,fdt(s.created),s.shop.name,`${s.from.city} → ${s.to.city}`,typeTag(s),`<span class="small">${modeTxt(s)}</span>`,s.weight+' kg',chip(s.status)+(s.delayed&&s.status!=='Delivered'?' '+chip('Delayed','warn'):''),money(s.price),money(s.cost),money(s.price-s.cost)]})),
+     {foot:['Total','','','','','','','',money(rows.reduce((a,s)=>a+s.price,0)),money(rows.reduce((a,s)=>a+s.cost,0)),money(rows.reduce((a,s)=>a+s.price-s.cost,0))]})}`;
+};
+
+function priceEstimate(type, w, km, m1, m3){
+  if(type==='incity'){ const c = m1==='Porter'? r10(70+km*13+(w>10?60:0)) : r10(35+km*5); const p = m1==='Porter'? r10(c*1.24) : r10(60+km*9+w*4); return {lines:[[m1==='Porter'?'Porter fare (est.)':'Delivery charge', p]], total:p}; }
+  const l1 = m1==='Porter'?190:110, l3 = m3==='Porter'?200:120, rail=r10(60+w*14), ag=110;
+  const sub=l1+rail+ag+l3, total=r10(sub*1.22);
+  return {lines:[['Leg 1: shop → station',l1],['Railway parcel charge',rail],['Agent handling (both stations)',ag],['Leg 3: station → receiver',l3],['Service fee + GST',total-sub]], total};
+}
+function bookingForm(asAdmin){
+  const P=S.pending, t=S.newType, w=+(P.w||5), m1=P.m1||'Auto', m3=P.m3||'Auto';
+  const shop0 = asAdmin ? (shopById(P.shop)||SHOPS[0]) : SHOPS[0];
+  if(!P.pk || P.pkShop!==shop0.id){ P.pk={...shop0.loc}; P.pkShop=shop0.id; }
+  if(!P.dp) P.dp={name:'Pallavi Singh',phone:'+91 98290 12345',line1:'House 45, 2nd floor',line2:'Pusa Road',landmark:'Near Karol Bagh Metro Station',area:'Karol Bagh',city:'Delhi',state:'Delhi',pincode:'110005',lat:28.6514,lng:77.1907};
+  const km=distKm(P.pk,P.dp), sameCity=P.pk.city===P.dp.city;
+  const cat=P.cat||'Clothing & textiles', qty=+(P.qty||1), Lc=+(P.l||40), Bc=+(P.b||30), Hc=+(P.h||25), fragile=!!P.fragile, decl=+(P.decl||5000);
+  const volW=Math.round(Lc*Bc*Hc/5000*10)/10*qty, chW=Math.max(w*qty, volW), veh=vehicleFor(chW, Math.max(Lc,Bc,Hc));
+  const day=P.day||'Today', slot=P.slot||(day==='Today'?'Within 60 min':'10 AM–12 PM');
+  const est=priceEstimate(t==='railway'?'railway':'incity',chW,km,m1==='Own'?'Own':'Porter',m3==='Own'?'Own':'Porter');
+  const shop = shop0;
+  const set = (k) => `onchange="S.pending.${k}=this.value;render()"`;
+  const cb = (k,v,label,sub) => `<button type="button" class="cb ${String(P[k]??'')===String(v)||(k==='cat'&&cat===v)||(k==='day'&&day===v)||(k==='slot'&&slot===v)?'on':''}" onclick="S.pending['${k}']='${v}';render()">${label}${sub?`<small>${sub}</small>`:''}</button>`;
+  const SIZES=[['Envelope',30,22,2],['Small box',25,20,15],['Medium box',40,30,25],['Large box',60,45,40],['Extra large',90,60,50]];
+  const curSize = SIZES.find(z=>z[1]===Lc&&z[2]===Bc&&z[3]===Hc);
+  return `<div class="grid g21"><div class="card">
+    ${asAdmin?`<div class="field"><label class="f">Shopkeeper</label><select class="inp" onchange="S.pending.shop=this.value;render()">${SHOPS.filter(s=>s.kyc==='Approved').map(s=>`<option value="${s.id}" ${s.id===shop.id?'selected':''}>${s.name} · ${s.city}</option>`).join('')}</select></div>`:''}
+    ${asAdmin?`<div class="field"><label class="f">Delivery method (decided by admin)</label><div class="seg">${[['incity','In-city'],['road','Direct road'],['railway','Railway']].map(x=>`<button class="${t===x[0]?'on':''}" onclick="S.newType='${x[0]}';render()">${x[1]}</button>`).join('')}</div></div>
+      ${(t==='incity'&&!sameCity)||(t!=='incity'&&sameCity)?`<div class="banner warn">${sameCity?'Pickup and drop are in the same city: use In-city.':'Pickup and drop are in different cities: In-city (local Porter) cannot deliver this. Use Direct road or Railway.'}</div>`:''}`
+     :`<div class="banner warn">Just enter the <b>pickup</b> and <b>drop</b> addresses. Our team decides the best way to send it (local delivery, direct vehicle or train) and confirms the price.</div>`}
+    ${addrForm('pk','Pickup location','#0ca30c')}
+    ${addrForm('dp','Drop location','#d03b3b')}
+    <div class="pricebox small" style="margin-bottom:14px">Distance ≈ <b>${km} km</b> by road · ${sameCity?'Same city ('+P.pk.city+')':'Different cities: '+P.pk.city+' → '+P.dp.city}</div>
+    <h4 style="margin:14px 0 10px">What are you sending?</h4>
+    <div class="chips" style="margin-bottom:12px">${CATS.map(c=>cb('cat',c[0],c[1]+' '+c[0])).join('')}</div>
+    <div class="grid g2"><div class="field"><label class="f">Item description</label><input class="inp" placeholder="e.g. 12 cotton shirts" value="${P.desc||''}" ${set('desc')}></div>
+      <div class="field"><label class="f">Declared value (₹)</label><input class="inp" type="number" inputmode="numeric" value="${decl}" ${set('decl')}></div></div>
+    ${decl>=50000?'<div class="banner warn" style="margin-top:-4px">Value is ₹50,000 or more, so an e-way bill number is required. <input class="inp" style="margin-top:6px" placeholder="E-way bill number"></div>':''}
+    <h4 style="margin:6px 0 10px">Weight per box</h4>
+    <div class="chips" style="margin-bottom:8px">${[['Up to 1 kg',1],['1–5 kg',5],['5–10 kg',10],['10–20 kg',20],['20–50 kg',50],['50 kg +',75]].map(x=>cb('w',x[1],x[0])).join('')}</div>
+    <div class="row" style="margin-bottom:12px"><label class="f" style="margin:0">Exact weight</label><input class="inp" style="width:110px" type="number" inputmode="decimal" value="${w}" ${set('w')}><span class="small muted">kg</span></div>
+    <h4 style="margin:6px 0 10px">Box size</h4>
+    <div class="chips" style="margin-bottom:8px">${SIZES.map(z=>`<button type="button" class="cb ${curSize===z?'on':''}" onclick="Object.assign(S.pending,{l:${z[1]},b:${z[2]},h:${z[3]}});render()">${z[0]}<small>${z[1]}×${z[2]}×${z[3]} cm</small></button>`).join('')}</div>
+    <div class="grid g3 keep3" style="gap:8px;margin-bottom:6px">${[['l','Length',Lc],['b','Breadth',Bc],['h','Height',Hc]].map(d=>`<div><label class="f">${d[1]} (cm)</label><input class="inp" type="number" inputmode="numeric" value="${d[2]}" ${set(d[0])}></div>`).join('')}</div>
+    <div class="small muted" style="margin-bottom:12px">Volumetric weight = L × B × H ÷ 5000 = <b>${Math.round(Lc*Bc*Hc/5000*10)/10} kg</b> per box. Price uses the higher of actual and volumetric weight.</div>
+    <div class="row wrap" style="margin-bottom:12px;gap:16px"><div class="row"><label class="f" style="margin:0">Number of boxes</label><div class="step3"><button type="button" onclick="S.pending.qty=Math.max(1,${qty}-1);render()">−</button><span>${qty}</span><button type="button" onclick="S.pending.qty=${qty}+1;render()">+</button></div></div>
+      <label class="row small"><input type="checkbox" ${fragile?'checked':''} onchange="S.pending.fragile=this.checked;render()"> Fragile, handle with care</label></div>
+    <div class="field">${capture('pkg','Parcel photo')}</div>
+    <h4 style="margin:6px 0 10px">Pickup schedule</h4>
+    <div class="chips" style="margin-bottom:8px">${['Today','Tomorrow'].map(d=>cb('day',d,d)).join('')}<input class="inp" type="date" style="width:auto" onchange="S.pending.day=this.value;S.pending.slot='10 AM–12 PM';render()"></div>
+    <div class="chips" style="margin-bottom:12px">${[...(day==='Today'?[['Within 60 min','Express']]:[]),['10 AM–12 PM'],['12–2 PM'],['2–4 PM'],['4–6 PM'],['6–8 PM']].map(x=>cb('slot',x[0],x[0],x[1])).join('')}</div>
+    ${asAdmin?'':`<div class="field"><label class="f">Note for admin (optional)</label><textarea class="inp" id="rnote" rows="2" placeholder="e.g. call before coming, godown is at the back"></textarea></div>`}
+    ${asAdmin?`<h4 style="margin:6px 0 10px">Assign</h4><div class="grid g3">
+      <div class="field"><label class="f">${t==='railway'?'Leg 1 (shop → station)':'Delivery by'}</label><select class="inp" onchange="S.pending.m1=this.value;render()">${['Auto','Own','Porter'].map(o=>`<option value="${o}" ${m1===o?'selected':''}>${o==='Auto'?'Auto (own boy if free, else Porter)':o==='Own'?'Own delivery boy':'Porter'}</option>`).join('')}</select></div>
+      ${t==='railway'?`<div class="field"><label class="f">Leg 3 (station → receiver)</label><select class="inp" onchange="S.pending.m3=this.value;render()">${['Auto','Own','Porter'].map(o=>`<option value="${o}" ${m3===o?'selected':''}>${o==='Auto'?'Auto':o==='Own'?'Own delivery boy':'Porter'}</option>`).join('')}</select></div>`:''}
+      </div>`:''}
+    <div class="row"><label class="row small"><input type="checkbox" checked> Send WhatsApp & SMS updates to receiver</label></div>
+  </div>
+  <div><div class="card"><h3>${asAdmin?'Price estimate':'Request summary'}</h3><div class="sub">${asAdmin?(t==='railway'?'Leg 1 + railway + agents + leg 3':'Live quote from Porter API or own rate card'):'Admin confirms the method and price, usually within 15 minutes'}</div>
+    ${asAdmin?`<div class="pricebox">${est.lines.map(l=>`<div class="r"><span>${l[0]}</span><span>${money(l[1])}</span></div>`).join('')}<div class="r t"><span>Total</span><span>${money(est.total)}</span></div></div>`
+      :`<div class="pricebox"><div class="r"><span>Delivery method</span><b>Decided by admin</b></div><div class="r"><span>Price</span><b>Shared after review</b></div><div class="r"><span>Distance</span><b>≈ ${km} km</b></div></div>`}
+    <div class="sumbox"><div class="r"><span>Item</span><b>${cat}${fragile?' · Fragile':''}</b></div><div class="r"><span>Boxes</span><b>${qty} × ${Lc}×${Bc}×${Hc} cm</b></div><div class="r"><span>Actual weight</span><b>${w*qty} kg</b></div><div class="r"><span>Volumetric weight</span><b>${volW} kg</b></div><div class="r"><span>Chargeable weight</span><b>${chW} kg</b></div><div class="r"><span>Vehicle</span><b>${veh}</b></div><div class="r"><span>Pickup</span><b>${day} · ${slot}</b></div></div>
+    <div class="field" style="margin-top:12px"><label class="f">${asAdmin?'Payment':'Payment (after approval)'}</label><select class="inp"><option>Wallet (balance ${money(shop.wallet)})</option><option>${asAdmin?'UPI':'Payment link on WhatsApp'}</option>${asAdmin?'<option>Card / Netbanking</option>':''}</select></div>
+    <button class="btn pri block" onclick="createBooking(${asAdmin?1:0},'${shop.id}',${w*qty})">${asAdmin?'Create & assign · '+money(est.total):'Send request to admin'}</button>
+    <div class="small muted" style="margin-top:8px">${asAdmin?'Created as approved. The delivery boy or Porter is assigned right away.':'Admin checks your request, confirms the price and assigns pickup. You get a WhatsApp update, usually within 15 minutes.'}</div>
+    <div class="small muted" style="margin-top:4px">${t==='railway'?'Delivery time: 1–3 days depending on train':'Delivery time: within 2–3 hours after pickup'}</div></div></div></div>`;
+}
+PAGES.create = () => bookingForm(true);
+function addrForm(k, title, color){
+  const a=S.pending[k];
+  const f=(fld,label,ph,extra='')=>`<div class="field"><label class="f">${label}</label><input class="inp" value="${a[fld]??''}" placeholder="${ph}" onchange="S.pending.${k}.${fld}=this.value${fld==='pincode'?`;pinFill('${k}')`:''};render()" ${extra}></div>`;
+  const saved = k==='pk'
+    ? `<select class="inp" style="width:auto;max-width:170px" onchange="Object.assign(S.pending.pk, this.value==='g'?GODOWN:SHOPS[0].loc);render()"><option value="s">Saved: Main shop</option><option value="g" ${a.line1===GODOWN.line1?'selected':''}>Saved: Godown</option></select>`
+    : `<select class="inp" style="width:auto;max-width:170px" onchange="const x=SH.find(z=>z.id===this.value); if(x){S.pending.dp={...x.to}}; render()"><option>Saved receivers…</option>${mine().slice(0,6).map(x=>`<option value="${x.id}">${x.to.name} · ${x.to.city}</option>`).join('')}</select>`;
+  return `<div class="addrbox"><div class="row" style="margin-bottom:10px"><h4 style="margin:0"><span class="dotk" style="background:${color}"></span>${title}</h4><span class="sp"></span>${saved}</div>
+   <div class="mapbox"><svg viewBox="0 0 320 110" preserveAspectRatio="xMidYMid slice"><rect width="320" height="110" fill="#eef2ea"/><path d="M0 72 L320 40" stroke="#fff" stroke-width="10"/><path d="M118 0 L162 110" stroke="#fff" stroke-width="8"/><path d="M0 18 L320 96" stroke="#fff" stroke-width="5"/><rect x="214" y="8" width="64" height="26" rx="3" fill="#dde7d2"/><rect x="30" y="82" width="54" height="22" rx="3" fill="#dde7d2"/><path d="M160 26c-9 0-16 7-16 16 0 12 16 30 16 30s16-18 16-30c0-9-7-16-16-16z" fill="${color}"/><circle cx="160" cy="42" r="6" fill="#fff"/></svg>
+    <div class="mb2"><button type="button" class="btn sm" onclick="useLoc('${k}')">📍 Use current location</button><button type="button" class="btn sm" onclick="toast('Opens Google Maps to drag the pin to the exact door (demo)')">Move pin</button><span class="small muted">${a.lat}, ${a.lng}</span></div></div>
+   <div class="grid g2">${f('name',k==='pk'?'Contact person':'Receiver name','Full name')}${f('phone','Mobile number','+91','inputmode="tel"')}</div>
+   ${f('line1','Flat / House / Shop no., floor','e.g. Shop 12, 1st floor')}
+   ${f('line2','Building / street','e.g. Krishna Complex, MI Road')}
+   <div class="grid g2">${f('landmark','Landmark','e.g. Near SBI Bank')}${f('area','Area / locality','e.g. Karol Bagh')}</div>
+   <div class="grid g3 keep3" style="gap:8px">${f('pincode','Pincode','6 digits','inputmode="numeric" maxlength="6"')}<div class="field"><label class="f">City</label><select class="inp" onchange="S.pending.${k}.city=this.value;S.pending.${k}.state=CITIES[this.value].state;render()">${CITY_NAMES.map(c=>`<option ${a.city===c?'selected':''}>${c}</option>`).join('')}</select></div>${f('state','State','')}</div></div>`;
+}
+function pinFill(k){ const a=S.pending[k], p=PIN[String(a.pincode).trim()];
+  if(p){ const c=CITIES[p.city]; Object.assign(a,{city:p.city,area:p.area,state:p.state,lat:+(c.ll[0]+.01).toFixed(5),lng:+(c.ll[1]+.01).toFixed(5)}); toast('Pincode found: '+p.area+', '+p.city+', '+p.state); }
+  else if(String(a.pincode).length===6) toast('Demo pincodes: 302017 Jaipur, 110005 Delhi, 400050 Mumbai, 226010 Lucknow, 380009 Ahmedabad, 324005 Kota'); }
+function useLoc(k){ const a=S.pending[k]; const done=(lat,lng,msg)=>{ a.lat=+lat.toFixed(5); a.lng=+lng.toFixed(5); render(); toast(msg); };
+  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>done(p.coords.latitude,p.coords.longitude,'Exact GPS location captured'),()=>done(a.lat+.0005,a.lng+.0005,'GPS not allowed here; pin kept on the address (demo)'),{timeout:5000});
+  else done(a.lat,a.lng,'Pin kept on the address'); }
+function createBooking(asAdmin, shopId, w){
+  const shop=shopById(shopId); const m1=S.pending.m1==='Own'||(!S.pending.m1||S.pending.m1==='Auto')&&boyIn(shop.city).length?'Own':'Porter';
+  const note = (document.getElementById('rnote')||{}).value;
+  const P=S.pending, Lc=+(P.l||40), Bc=+(P.b||30), Hc=+(P.h||25), qty=+(P.qty||1), day=P.day||'Today';
+  const pk={...P.pk}, dp={...P.dp}; pk.addr=fmtAddr(pk); dp.addr=fmtAddr(dp);
+  if(!dp.name||!dp.phone||!dp.line1||!dp.pincode) return toast('Please fill receiver name, mobile, address and pincode');
+  const type = asAdmin ? (S.newType==='railway'?'railway':'incity') : (pk.city===dp.city?'incity':'railway');
+  const s=build({shop,type,from:pk,to:dp,toCity:dp.city,created:new Date(),stage:0,weight:w,mode1:m1,boy1:boyIn(shop.city)[0],mode3:P.m3==='Own'?'Own':'Porter',
+    qty, cat:P.cat||'Clothing & textiles', fragile:!!P.fragile, pickup:day+' · '+(P.slot||(day==='Today'?'Within 60 min':'10 AM–12 PM')), items:P.desc||undefined});
+  s.dims=`${Lc}×${Bc}×${Hc} cm`; s.volW=Math.round(Lc*Bc*Hc/5000*10)/10*qty; s.declared=+(P.decl||5000); s.vehicle=vehicleFor(Math.max(w,s.volW),Math.max(Lc,Bc,Hc));
+  if(P.pkg) s.photo=P.pkg;
+  s.bookedBy=asAdmin?'Admin':'Shopkeeper'; s.events[0].by=actor(s,'Request Raised'); if(note) s.reqNote=note;
+  if(asAdmin) advance(s,'Approved & Assigned');
+  SH.splice(SH.indexOf(s),1); SH.unshift(s); S.pending={};
+  toast(asAdmin ? `Created ${s.id} · ${s.legs[0].mode==='Porter'?'Porter order '+s.legs[0].porter.crn+' booked':'assigned to '+s.legs[0].boy.name} · WhatsApp sent`
+                : `Request ${s.id} sent to admin for approval`);
+  go(asAdmin?'bookings':'sparcels'); openShipment(s.id);
+}
+
+PAGES.dispatch = () => {
+  const waiting=SH.filter(s=>['Approved & Assigned','Received by Destination Agent','Leg 3 Assigned'].includes(s.status));
+  const pend=SH.filter(isReq).length;
+  return `${pend?`<div class="banner warn">${pend} new shop requests need approval before they appear here. <a href="#" onclick="go('requests');return false">Review requests →</a></div>`:''}<div class="grid g21"><div class="card"><h3>Approved, waiting for pickup or final delivery</h3><div class="sub">Change the delivery boy or switch to Porter. Leg 3 orders are created automatically when the destination agent confirms arrival.</div>
+    ${table(['Tracking ID','Job','City','Pickup from','Current','Assign'], waiting.map(s=>{ const leg3=s.stage>=8&&s.type==='railway'; const L=leg3?s.legs[2]:s.legs[0]; const city=L.city;
+      return {cells:[`<a href="#" class="id" onclick="openShipment('${s.id}');return false">${s.id}</a>`, leg3?'Leg 3 · station → receiver':s.type==='railway'?'Leg 1 · shop → station':'In-city delivery', city, `<span class="small">${(leg3?L.from:s.shop.name).slice(0,30)}</span>`, `<span class="small">${L.mode==='Porter'?'Porter '+L.porter.crn:'Own: '+L.boy.name}</span>`,
+        `<div class="row"><select class="inp" style="width:150px;padding:4px 6px" id="as-${s.id}">${boyIn(city).map(b=>`<option>${b.name}${b.online?(b.busy?' (busy)':' (free)'):' (offline)'}</option>`).join('')}<option>— Porter —</option></select><button class="btn sm pri" onclick="toast('${s.id}: '+document.getElementById('as-${s.id}').value.replace(/ \\(.*\\)/,'')+' assigned · WhatsApp sent')">Assign</button></div>`]};}))}
+    </div><div class="card"><h3>Delivery boys</h3><div class="sub">Live status</div>
+    ${BOYS.map(b=>{const jobs=SH.filter(s=>s.legs.some(l=>l.boy===b)&&!['Delivered','Cancelled'].includes(s.status)).length; return `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line2)"><span class="dot ${b.online?(b.busy?'busy':'on'):''}"></span><div class="sp"><b>${b.name}</b><div class="small muted">${b.city} · ${b.vehicle.split(' · ')[0]} · ★ ${b.rating}</div></div><span class="small">${jobs} active</span></div>`;}).join('')}
+    <div class="pricebox small" style="margin-top:12px"><b>Auto-assign rule:</b> nearest free own delivery boy within 5 km; if none is free in 10 minutes, a Porter order is created automatically. Change this in Settings.</div></div></div>`;
+};
+
+PAGES.porter = () => {
+  const P=[]; SH.filter(s=>s.stage>0&&s.status!=='Rejected').forEach(s=>s.legs.forEach(l=>{ if(l.kind==='road'&&l.mode==='Porter') P.push({s,l}); }));
+  const spend=P.reduce((a,p)=>a+p.l.cost,0);
+  return `<div class="grid g4">${kpi('Porter orders (sample)',P.length)}${kpi('Porter spend',money(spend))}${kpi('Average fare',money(spend/P.length))}${kpi('Cancelled by Porter','2','Re-booked automatically')}</div>
+   <div class="row wrap" style="margin:16px 0 12px">${chip('Porter API connected','ok')}<span class="small muted">Last status sync 2 min ago · Webhook active</span><div class="sp"></div><button class="btn" onclick="toast('Synced 14 orders with Porter')">Sync now</button><button class="btn" onclick="toast('Exported (demo)')">Export</button></div>
+   ${table(['Porter CRN','Tracking ID','Leg','City','Vehicle','Driver','Distance',{t:'Fare',num:1},'Parcel status'], P.map(p=>({click:`openShipment('${p.s.id}')`,cells:[`<span class="id">${p.l.porter.crn}</span>`,`<span class="id">${p.s.id}</span>`,p.s.type==='incity'?'In-city':'Leg '+p.l.n,p.l.city,p.l.porter.vehicle,p.l.porter.driver+' · '+p.l.porter.phone,p.l.km+' km',money(p.l.cost),chip(p.s.status)]})))}`;
+};
+
+PAGES.railway = () => {
+  const t=curTab('rail','transit');
+  let body='';
+  if(t==='transit'){ const L=SH.filter(s=>s.type==='railway'&&s.stage>=4&&s.stage<=8&&s.status!=='Cancelled');
+    body=table(['Tracking ID','Route','Train','PWB / RR','Departed','Expected arrival','Origin agent','Destination agent','Status'], L.map(s=>{const tr=s.legs[1].train; const dep=s.events.find(e=>e.st==='Loaded on Train'); const depT=dep?addMin(dep.t,10):null;
+      return {click:`openShipment('${s.id}')`,cells:[`<span class="id">${s.id}</span>`,`${s.from.city} → ${s.to.city}`,`${tr.no} · ${tr.name}`,`<span class="id">${tr.pwb}</span>`,depT?fdt(depT):'—',depT?fdt(addMin(depT,tr.hours*60)):'—',s.legs[1].agentO.name,s.legs[1].agentD.name,chip(s.status)+(s.delayed?' '+chip('Late','warn'):'')]};}));
+  } else if(t==='agents'){ body=`<div class="row" style="margin-bottom:12px"><div class="sp"></div><button class="btn pri" onclick="toast('Add agent form (demo)')">+ Add agent</button></div>`+table(['Agency','Agent','Station','Phone',{t:'Fee / parcel',num:1},{t:'Parcels this month',num:1},{t:'Commission due',num:1},'Status'], AGENTS.map(a=>{const n=rint(60,240); return {cells:[a.agency,a.name,a.station,a.phone,money(a.fee),n,money(n*a.fee),chip('Active','ok')]};}));
+  } else { const pairs=[['Jaipur','Delhi'],['Jaipur','Mumbai'],['Jaipur','Lucknow'],['Delhi','Mumbai'],['Ahmedabad','Mumbai'],['Kota','Delhi'],['Jaipur','Ahmedabad'],['Delhi','Lucknow']];
+    body=table(['Route','Trains used','Avg transit',{t:'Up to 5 kg',num:1},{t:'5–10 kg',num:1},{t:'10–25 kg',num:1},{t:'Extra per kg',num:1}], pairs.map(p=>({cells:[`${p[0]} → ${p[1]}`,rint(3,9)+' daily',rint(5,20)+' h',money(r10(rint(380,520))),money(r10(rint(540,760))),money(r10(rint(800,1200))),money(rint(18,32))]})))+`<div class="small muted" style="margin-top:8px">Fixed route prices include pickup, railway, agents and final delivery. Edit them in Pricing & Rates.</div>`; }
+  return tabs('rail',[['transit','Parcels with agents / on train'],['agents','Stations & agents'],['routes','Routes & prices']])+body;
+};
+
+PAGES.users = () => {
+  const t=curTab('users','shop');
+  const head=`<div class="row filters" style="margin-bottom:12px"><input class="inp" style="width:240px" placeholder="Search name or phone"><div class="sp"></div><button class="btn" onclick="toast('Template downloaded: users_template.xlsx')">Download Excel template</button><button class="btn" onclick="bulkUpload('users')">Bulk upload (Excel)</button><button class="btn pri" onclick="toast('Add user form (demo)')">+ Add ${t==='shop'?'shopkeeper':t==='boy'?'delivery boy':t==='agent'?'agent':'staff'}</button></div>`;
+  let body='';
+  if(t==='shop') body=table(['ID','Shop','Owner','City','Phone','GSTIN','KYC',{t:'Parcels',num:1},{t:'Total spend',num:1},{t:'Wallet',num:1},'Status','Actions'], SHOPS.map(s=>{const my=SH.filter(x=>x.shop===s); return {cells:[`<span class="id">${s.id}</span>`,`<a href="#" onclick="shopProfile('${s.id}');return false">${s.name}</a>`,s.owner,s.city,s.phone,`<span class="id small">${s.gst}</span>`,chip(s.kyc,s.kyc==='Approved'?'ok':s.kyc==='Pending'?'warn':'bad'),my.length*rint(6,11),money(my.reduce((a,x)=>a+x.price,0)*8),money(s.wallet),chip(s.status,s.status==='Active'?'ok':'bad'),
+     s.kyc==='Pending'?`<button class="btn sm ok" onclick="kyc('${s.id}','Approved')">Approve</button> <button class="btn sm danger" onclick="kyc('${s.id}','Rejected')">Reject</button>`:`<button class="btn sm" onclick="shopProfile('${s.id}')">View</button> <button class="btn sm danger" onclick="toast('${s.name} ${s.status==='Active'?'blocked':'unblocked'} (demo)')">${s.status==='Active'?'Block':'Unblock'}</button>`]};}));
+  if(t==='boy') body=table(['ID','Name','City','Phone','Vehicle','Status',{t:'Jobs (month)',num:1},{t:'On-time',num:1},{t:'Rating',num:1},{t:'Earnings (month)',num:1},{t:'Pending payout',num:1},''], BOYS.map(b=>{const j=rint(140,320); return {cells:[`<span class="id">${b.id}</span>`,b.name,b.city,b.phone,b.vehicle,b.online?chip(b.busy?'On a job':'Online','ok'):chip('Offline',''),j,(90+R()*9).toFixed(1)+'%','★ '+b.rating,money(j*rint(42,55)),money(rint(18,45)*100),`<button class="btn sm" onclick="toast('Profile: documents, bank details, job history (demo)')">View</button>`]};}));
+  if(t==='agent') body=table(['ID','Agency','Agent','Station','Phone','Documents',{t:'Parcels (month)',num:1},{t:'Commission due',num:1},'Status'], AGENTS.map(a=>({cells:[`<span class="id">${a.id}</span>`,a.agency,a.name,a.station,a.phone,chip('Verified','ok'),rint(60,240),money(rint(40,140)*100),chip('Active','ok')]})));
+  if(t==='staff') body=table(['Name','Role','Phone','Access','Last login','Status'], [['Anil Kumar','Super Admin','All modules','Today, 9:12 AM'],['Priya Saxena','Operations Manager','Bookings, Dispatch, Railway','Today, 8:40 AM'],['Karan Malhotra','Finance','Earnings, Payouts, Reports','Yesterday, 6:55 PM'],['Sonal Joshi','Support Executive','Bookings (view), Support','Today, 10:02 AM']].map(r=>({cells:[r[0],r[1],phone(),`<span class="small">${r[2]}</span>`,r[3],chip('Active','ok')]})));
+  return tabs('users',[['shop',`Shopkeepers (${SHOPS.length})`],['boy',`Delivery boys (${BOYS.length})`],['agent',`Railway agents (${AGENTS.length})`],['staff','Admin staff (4)']])+head+body;
+};
+function kyc(id,v){ shopById(id).kyc=v; toast(`KYC ${v.toLowerCase()} for ${shopById(id).name} · SMS sent`); render(); }
+function showShop(id){
+  const s=shopById(id), my=SH.filter(x=>x.shop===s);
+  modal(`<div class="mh"><div><div class="small muted">${s.id} · Shopkeeper</div><h2>${s.name}</h2></div>${chip(s.kyc,s.kyc==='Approved'?'ok':'warn')}<div class="sp"></div><button class="x" onclick="closeModal()">×</button></div><div class="mb">
+   <div class="grid g4">${kpi('Parcels (all time)',my.length*9)}${kpi('Total spend',money(my.reduce((a,x)=>a+x.price,0)*8))}${kpi('Wallet balance',money(s.wallet))}${kpi('Member since',fd(s.joined))}</div>
+   <div class="grid g2" style="margin-top:16px"><div class="card"><h3>Details</h3><div class="kv" style="margin-top:8px"><div>Owner</div><div>${s.owner}</div><div>Phone</div><div>${s.phone}</div><div>Address</div><div>${s.addr}</div><div>GSTIN</div><div>${s.gst}</div><div>Documents</div><div>PAN ✓ · Aadhaar ✓ · Shop photo ✓</div></div></div>
+   <div class="card"><h3>Admin actions</h3><div class="row wrap" style="margin-top:8px"><button class="btn" onclick="toast('₹500 credited to wallet (demo)')">Credit wallet</button><button class="btn" onclick="toast('Custom price plan assigned (demo)')">Assign price plan</button><button class="btn" onclick="S.pending.shop='${s.id}';leaveModal();go('create')">Book on behalf</button><button class="btn danger" onclick="toast('Blocked (demo)')">Block</button></div></div></div>
+   <h3 style="margin:16px 0 8px">Recent parcels</h3>${table(['Tracking ID','Date','To','Type','Status',{t:'Amount',num:1}], my.slice(0,8).map(x=>({click:`openShipment('${x.id}')`,cells:[`<span class="id">${x.id}</span>`,fdt(x.created),x.to.city,typeTag(x),chip(x.status),money(x.price)]})))}</div>`);
+}
+function showBulk(what){
+  modal(`<div class="mh"><h2>Bulk upload ${what}</h2><div class="sp"></div><button class="x" onclick="closeModal()">×</button></div><div class="mb">
+   <ol class="sec" style="margin-top:0;padding-left:18px"><li>Download the Excel template</li><li>Fill one row per ${what==='users'?'user (role, name, phone, city…)':'booking (shopkeeper ID, receiver, address, weight…)'}</li><li>Upload: the system checks every row and shows errors before saving</li></ol>
+   <div class="drop">Drag & drop .xlsx / .csv here<br><span class="small muted">or</span><br><label class="btn" style="display:inline-block;margin-top:6px">Choose file<input type="file" style="display:none" onchange="closeModal();toast('48 rows checked: 46 OK, 2 with errors (phone missing). 46 saved.')"></label></div>
+   <div class="row" style="margin-top:14px"><button class="btn" onclick="toast('Template downloaded (demo)')">Download template</button><div class="sp"></div><button class="btn" onclick="closeModal()">Close</button></div></div>`,'sm');
+}
+
+PAGES.earnings = () => {
+  const costT=COSTS.reduce((a,c)=>a+c.value,0); const rev=REV[LAST], pr=rev-costT;
+  const split=[['In-city · Porter',0.38,0.19],['In-city · Own boys',0.17,0.34],['Railway (3 legs)',0.45,0.22]];
+  const tx=SH.slice(0,14).map((s,i)=>({cells:[fdt(s.created),`<span class="id">TXN${80211+i}</span>`,s.shop.name,i%5===3?'Wallet recharge':i%7===5?'Refund':'Booking payment',i%5===3?'UPI':s.pay,i%7===5?`<span style="color:var(--bad-x)">−${money(s.price)}</span>`:money(i%5===3?2000:s.price),chip(i===2?'Pending':'Success',i===2?'warn':'ok')]}));
+  return `<div class="grid g6">${kpi('Revenue · '+MONTHS[LAST],lakh(rev),'▲ '+pct((rev-REV[LAST-1])/REV[LAST-1])+' vs last month','up')}${kpi('Total costs',lakh(costT),pct(costT/rev)+' of revenue')}${kpi('Net profit',lakh(pr),'Margin '+pct(pr/rev),'up')}${kpi('Parcels delivered',num(PARCELS_M[LAST]),'Avg '+money(rev/PARCELS_M[LAST])+' / parcel')}${kpi('Wallet money held',money(SHOPS.reduce((a,s)=>a+s.wallet,0)*2),'Owed to shopkeepers')}${kpi('Refunds',money(18450),'31 parcels')}</div>
+   <div class="grid g21" style="margin-top:16px"><div class="card"><div class="ch"><div><h3>Revenue and net profit</h3><div class="sub">Monthly, ₹ (sample). Hover for values.</div></div><div class="sp"></div><select class="inp" style="width:auto"><option>Last 12 months</option><option>This year</option><option>Last year</option></select></div>
+      ${chartDiv('eRev',{kind:'line',labels:MONTHS,series:[{name:'Revenue',color:'var(--s1)',values:REV},{name:'Net profit',color:'var(--s2)',values:PROFIT}],fmt:lakh,h:260,extra:i=>`<div class="tr"><span>Margin</span><b>${pct(PROFIT[i]/REV[i])}</b></div><div class="tr"><span>Parcels</span><b>${num(PARCELS_M[i])}</b></div>`})}</div>
+    <div class="card"><h3>Where the money goes</h3><div class="sub">Costs in ${MONTHS[LAST]}, ₹</div>${chartDiv('eCost',{kind:'hbar',items:COSTS,fmt:money,total:costT,lw:170})}
+      <div class="pricebox small" style="margin-top:10px">Porter fares and railway charges are passed on to shopkeepers with a margin; profit is what remains after all costs.</div></div></div>
+   <div class="grid g2" style="margin-top:16px"><div class="card"><h3>Profit by service</h3><div class="sub">${MONTHS[LAST]}</div>
+     ${table(['Service',{t:'Parcels',num:1},{t:'Revenue',num:1},{t:'Cost',num:1},{t:'Profit',num:1},{t:'Margin',num:1}], split.map(r=>{const rv=rev*r[1]; return {cells:[r[0],num(PARCELS_M[LAST]*r[1]*(r[0].startsWith('Railway')?0.6:1.3)),money(rv),money(rv*(1-r[2])),money(rv*r[2]),pct(r[2])]};}))}</div>
+    <div class="card"><h3>City-wise revenue</h3><div class="sub">${MONTHS[LAST]} (bookings from that city)</div>
+     ${table(['City',{t:'Parcels',num:1},{t:'Revenue',num:1},{t:'Profit',num:1}], [['Jaipur',.34],['Delhi',.22],['Mumbai',.15],['Ahmedabad',.12],['Kota',.09],['Lucknow',.08]].map(c=>({cells:[c[0],num(PARCELS_M[LAST]*c[1]),money(rev*c[1]),money(pr*c[1])]})))}</div></div>
+   <div class="card" style="margin-top:16px"><div class="ch"><div><h3>Recent transactions</h3><div class="sub">Payments, wallet recharges and refunds</div></div><div class="sp"></div><button class="btn" onclick="toast('Exported (demo)')">Export</button></div>
+     ${table(['Date','Transaction ID','Shopkeeper','Type','Method',{t:'Amount',num:1},'Status'],tx)}</div>`;
+};
+
+PAGES.payouts = () => {
+  const t=curTab('pay','boy'); const week=`${fd(new Date(NOW.getTime()-7*864e5))} – ${fd(NOW)}`;
+  let body='';
+  if(t==='boy') body=table(['Delivery boy','City','Period',{t:'Jobs',num:1},{t:'Per-job earnings',num:1},{t:'Incentive',num:1},{t:'Deductions',num:1},{t:'Net payable',num:1},'Bank','Status',''], BOYS.map((b,i)=>{const j=rint(30,80), e=j*rint(42,52), inc=j>60?500:0, d=i===3?150:0; const paid=i>5; return {cells:[b.name,b.city,week,j,money(e),money(inc),d?`−${money(d)}`:'—',`<b>${money(e+inc-d)}</b>`,'HDFC ••'+rint(1000,9999),chip(paid?'Paid':'Pending',paid?'ok':'warn'),paid?'<span class="small muted">UTR '+rint(100000,999999)+'</span>':`<button class="btn sm pri" onclick="toast('${money(e+inc-d)} paid to ${b.name} via bank transfer (demo)')">Pay now</button>`]};}));
+  if(t==='agent') body=table(['Agency','Station','Period',{t:'Parcels',num:1},{t:'Railway charges paid by agent',num:1},{t:'Commission',num:1},{t:'Total payable',num:1},'Status',''], AGENTS.map((a,i)=>{const n=rint(20,70), rc=n*rint(140,260), c=n*a.fee; return {cells:[a.agency,a.station,week,n,money(rc),money(c),`<b>${money(rc+c)}</b>`,chip(i===0?'Paid':'Pending',i===0?'ok':'warn'),i===0?'':`<button class="btn sm pri" onclick="toast('Paid ${money(rc+c)} to ${a.agency} (demo)')">Pay now</button>`]};}));
+  if(t==='porter') body=table(['Porter account','City','Period',{t:'Orders',num:1},{t:'Billed',num:1},'Mode','Status'], CITY_NAMES.map((c,i)=>({cells:['ParcelSetu Business',c,week,rint(40,220),money(rint(60,300)*100),'Prepaid wallet',chip(i===2?'Low balance':'OK',i===2?'warn':'ok')]})));
+  return `<div class="grid g4">${kpi('Pending to delivery boys',money(31240),'9 people')}${kpi('Pending to railway agents',money(17410),'5 agencies')}${kpi('Paid this month',money(212800))}${kpi('Porter wallet balance',money(46500),'Auto top-up at ₹10,000')}</div><div style="height:16px"></div>`+
+   tabs('pay',[['boy','Delivery boys'],['agent','Railway agents'],['porter','Porter billing']])+`<div class="row wrap" style="margin-bottom:12px"><span class="small muted">Payout cycle: weekly (every Monday)</span><div class="sp"></div><button class="btn" onclick="toast('Payout sheet exported (demo)')">Export</button><button class="btn pri" onclick="toast('All pending payouts sent (demo)')">Pay all pending</button></div>`+body;
+};
+
+PAGES.pricing = () => {
+  const inp=(l,v,suf)=>`<div class="field"><label class="f">${l}</label><div class="row"><input class="inp" value="${v}">${suf?`<span class="small muted">${suf}</span>`:''}</div></div>`;
+  return `<div class="grid g3">
+   <div class="card"><h3>In-city · own delivery boys</h3><div class="sub">Price charged to shopkeeper</div>${inp('Base fare','₹60')}${inp('Per km','₹9')}${inp('Per kg (above 2 kg)','₹4')}${inp('Night charge (9 PM–7 AM)','+25%')}${inp('Waiting charge after 10 min','₹2 / min')}</div>
+   <div class="card"><h3>In-city · Porter</h3><div class="sub">Porter quote + our margin</div>${inp('Margin type','Percentage')}${inp('Margin','24%')}${inp('Minimum margin per order','₹25')}${inp('Use Porter when own boy not free for','10 min')}</div>
+   <div class="card"><h3>Payout rates</h3><div class="sub">What we pay our team</div>${inp('Delivery boy · per job','₹35')}${inp('Delivery boy · per km','₹5')}${inp('Incentive (60+ jobs / week)','₹500')}${inp('Railway agent fee per parcel','₹40–70','set per agent')}</div></div>
+   <div class="card" style="margin-top:16px"><div class="ch"><div><h3>Railway route prices</h3><div class="sub">Fixed door-to-door price shown to shopkeepers (includes both road legs, railway, agents)</div></div><div class="sp"></div><button class="btn" onclick="toast('Route added (demo)')">+ Add route</button></div>
+   ${table(['Route',{t:'Up to 5 kg',num:1},{t:'5–10 kg',num:1},{t:'10–25 kg',num:1},{t:'25–50 kg',num:1},{t:'Extra per kg',num:1},'Status'],[['Jaipur ⇄ Delhi',420,590,890,1450,22],['Jaipur ⇄ Mumbai',520,740,1180,1890,30],['Jaipur ⇄ Lucknow',480,680,1050,1690,26],['Delhi ⇄ Mumbai',540,760,1210,1950,31],['Ahmedabad ⇄ Mumbai',430,610,940,1520,23],['Kota ⇄ Delhi',450,640,980,1580,24]].map(r=>({cells:[r[0],...r.slice(1,5).map(v=>`<input class="inp" style="width:90px;text-align:right;padding:4px 6px" value="${v}">`),money(r[5]),chip('Active','ok')]})))}
+   <div class="row" style="margin-top:12px"><span class="small muted">GST 18% is added on the service fee. Every price change is saved in the audit log.</span><div class="sp"></div><button class="btn pri" onclick="toast('Pricing saved · applies to new bookings')">Save changes</button></div></div>`;
+};
+
+const REPORTS = [
+  ['daily','Daily bookings','Bookings, deliveries and revenue per day'],
+  ['revenue','Revenue & profit','Monthly revenue, each cost and net profit'],
+  ['shop','Shopkeeper-wise','Parcels and spend by each shopkeeper'],
+  ['boy','Delivery boy performance','Jobs, on-time %, ratings, earnings'],
+  ['agent','Railway agent performance','Parcels handled, loading time, commission'],
+  ['route','Railway routes','Parcels, transit time and profit per route'],
+  ['porter','Porter usage','Orders, spend and cancellations by city'],
+  ['delay','Delays & exceptions','Late, damaged and failed parcels'],
+  ['notify','WhatsApp & SMS','Messages sent, delivered, cost'],
+  ['gst','GST / tax','Taxable value and GST per month'],
+];
+function reportData(id){
+  const R2=mulberry32(id.length*977+id.charCodeAt(0));
+  const ri=(a,b)=>a+Math.floor(R2()*(b-a+1));
+  switch(id){
+    case 'daily': { const rows=DAYS.map((d,i)=>{const t=D_IN[i]+D_RL[i]; const del=t-ri(2,8); const rv=t*ri(390,470); return [d,D_IN[i],D_RL[i],t,del,ri(0,3),money(rv)];}).reverse();
+      return {kp:[['Bookings (14 days)',num(D_IN.reduce((a,b)=>a+b)+D_RL.reduce((a,b)=>a+b))],['Railway share',pct(D_RL.reduce((a,b)=>a+b)/(D_IN.reduce((a,b)=>a+b)+D_RL.reduce((a,b)=>a+b)))],['Cancellation rate','1.8%']],cols:['Date',{t:'In-city',num:1},{t:'Railway',num:1},{t:'Total',num:1},{t:'Delivered',num:1},{t:'Cancelled',num:1},{t:'Revenue',num:1}],rows}; }
+    case 'revenue': { const rows=MONTHS.map((m,i)=>{const r=REV[i],p=PROFIT[i],c=r-p; return [m,num(PARCELS_M[i]),money(r),money(c*0.46),money(c*0.31),money(c*0.093),money(c*0.107),money(c*0.03),`<b>${money(p)}</b>`,pct(p/r)];}).reverse();
+      return {kp:[['Revenue (12 months)',lakh(REV.reduce((a,b)=>a+b))],['Net profit (12 months)',lakh(PROFIT.reduce((a,b)=>a+b))],['Average margin',pct(PROFIT.reduce((a,b)=>a+b)/REV.reduce((a,b)=>a+b))]],cols:['Month',{t:'Parcels',num:1},{t:'Revenue',num:1},{t:'Porter',num:1},{t:'Railway',num:1},{t:'Agents',num:1},{t:'Boys',num:1},{t:'Other',num:1},{t:'Net profit',num:1},{t:'Margin',num:1}],rows}; }
+    case 'shop': return {kp:[['Active shopkeepers',SHOPS.filter(s=>s.status==='Active').length],['Top shopkeeper','Sharma Textiles'],['Avg spend / shop',money(54200)]],cols:['Shopkeeper','City',{t:'Parcels',num:1},{t:'In-city',num:1},{t:'Railway',num:1},{t:'Spend',num:1},{t:'Avg / parcel',num:1},{t:'Wallet',num:1},'Last booking'],
+      rows:SHOPS.map(s=>{const a=ri(20,90),b=ri(5,60); const sp=a*ri(140,220)+b*ri(600,900); return [s.name,s.city,a+b,a,b,money(sp),money(sp/(a+b)),money(s.wallet),fdt(minsAgo(ri(30,4000)))];}).sort((x,y)=>y[2]-x[2])};
+    case 'boy': return {kp:[['Jobs done (month)',num(1980)],['Avg on-time',  '94.6%'],['Avg rating','★ 4.6']],cols:['Delivery boy','City',{t:'Jobs',num:1},{t:'On-time',num:1},{t:'Avg pickup time',num:1},{t:'Avg delivery time',num:1},{t:'Rating',num:1},{t:'Km',num:1},{t:'Earnings',num:1},{t:'Complaints',num:1}],
+      rows:BOYS.map(b=>{const j=ri(140,320); return [b.name,b.city,j,(89+R2()*10).toFixed(1)+'%',ri(9,22)+' min',ri(24,48)+' min','★ '+b.rating,num(j*ri(6,11)),money(j*ri(42,55)),ri(0,3)];})};
+    case 'agent': return {kp:[['Parcels handled',num(1420)],['Avg time to load',  '2.6 h'],['Damage reports','3']],cols:['Agency','Station',{t:'Received from shops',num:1},{t:'Loaded on train',num:1},{t:'Arrivals handled',num:1},{t:'Avg load time',num:1},{t:'Damage',num:1},{t:'Commission',num:1}],
+      rows:AGENTS.map(a=>{const r=ri(60,240); return [a.agency,a.station,r,r-ri(0,4),ri(40,200),(1.5+R2()*2.5).toFixed(1)+' h',ri(0,2),money((r+ri(40,200))*a.fee)];})};
+    case 'route': { const pairs=[['Jaipur','Delhi'],['Jaipur','Mumbai'],['Delhi','Jaipur'],['Jaipur','Lucknow'],['Ahmedabad','Mumbai'],['Delhi','Mumbai'],['Kota','Delhi'],['Mumbai','Jaipur'],['Lucknow','Delhi']];
+      return {kp:[['Routes active',pairs.length],['Fastest route','Kota → Delhi (5.8 h)'],['Most profitable','Jaipur → Mumbai']],cols:['Route',{t:'Parcels',num:1},{t:'Avg weight',num:1},{t:'Avg train time',num:1},{t:'Avg door-to-door',num:1},{t:'Revenue',num:1},{t:'Cost',num:1},{t:'Profit',num:1}],
+      rows:pairs.map(p=>{const n=ri(40,260), rv=n*ri(650,1100), c=rv*(0.74+R2()*0.08); return [p.join(' → '),n,ri(6,18)+' kg',ri(5,20)+' h',ri(18,40)+' h',money(rv),money(c),money(rv-c)];})}; }
+    case 'porter': return {kp:[['Porter orders',num(1312)],['Porter spend',lakh(309400)],['Cancelled by Porter','1.9%']],cols:['City',{t:'Orders',num:1},{t:'2W / 3W / Ace',num:0},{t:'Avg fare',num:1},{t:'Total spend',num:1},{t:'Avg pickup wait',num:1},{t:'Cancelled',num:1}],
+      rows:CITY_NAMES.map(c=>{const n=ri(80,400); return [c,n,`${ri(50,70)}% / ${ri(20,35)}% / ${ri(3,10)}%`,money(ri(170,260)),money(n*ri(170,260)),ri(8,19)+' min',ri(0,9)];})};
+    case 'delay': { const L=SH.filter(s=>s.type==='railway').slice(0,10);
+      return {kp:[['Delayed this month','38 (2.1%)'],['Damaged','4'],['Failed delivery attempts','17']],cols:['Tracking ID','Route','Stage','Delay','Reason','Responsible','Action taken'],
+      rows:L.map((s,i)=>[`<span class="id">${s.id}</span>`,`${s.from.city} → ${s.to.city}`,['On train','At destination agent','Out for delivery','Pickup'][i%4],ri(1,9)+' h',['Train late','Receiver not available','Porter driver cancelled','Wrong address','Parcel missed train'][i%5],['Railways','Receiver','Porter','Shopkeeper','Origin agent'][i%5],['Customer informed','Re-attempt booked','Re-booked Porter','Address updated','Loaded on next train'][i%5]])}; }
+    case 'notify': { const ev=['Booking confirmed','Picked up','Loaded on train','Arrived at destination','Out for delivery + OTP','Delivered','Login OTP'];
+      return {kp:[['WhatsApp sent',num(18420)],['SMS sent',num(9310)],['Messaging cost',money(5210)]],cols:['Event',{t:'WhatsApp sent',num:1},{t:'WhatsApp delivered',num:1},{t:'SMS sent',num:1},{t:'SMS delivered',num:1},{t:'Cost',num:1}],
+      rows:ev.map(e=>{const w=e==='Login OTP'?0:ri(1500,3600), s=ri(500,2400); return [e,num(w),w?(96+R2()*3).toFixed(1)+'%':'—',num(s),(95+R2()*4).toFixed(1)+'%',money(w*0.16+s*0.2)];})}; }
+    case 'gst': return {kp:[['Taxable value (12 m)',lakh(REV.reduce((a,b)=>a+b)/1.18)],['GST collected',lakh(REV.reduce((a,b)=>a+b)*0.18/1.18)],['Filing status','Up to date']],cols:['Month',{t:'Invoices',num:1},{t:'Taxable value',num:1},{t:'CGST 9%',num:1},{t:'SGST 9%',num:1},{t:'IGST 18%',num:1},{t:'Total GST',num:1}],
+      rows:MONTHS.map((m,i)=>{const tv=REV[i]/1.18, intra=0.62; return [m,num(PARCELS_M[i]),money(tv),money(tv*intra*0.09),money(tv*intra*0.09),money(tv*(1-intra)*0.18),money(tv*0.18)];}).reverse()};
+  }
+}
+PAGES.reports = () => {
+  const cur=REPORTS.find(r=>r[0]===S.report); const d=reportData(S.report);
+  return `<div class="grid rep-grid"><div class="card rep-list" style="padding:8px;align-self:start">${REPORTS.map(r=>`<a class="${S.report===r[0]?'on':''}" onclick="S.report='${r[0]}';render()">${r[1]}</a>`).join('')}</div>
+  <div><div class="card"><div class="ch"><div><h3>${cur[1]}</h3><div class="sub">${cur[2]}</div></div><div class="sp"></div>
+    <button class="btn" onclick="toast('${cur[1]} exported to Excel (demo)')">Export Excel</button><button class="btn" onclick="toast('${cur[1]} exported to PDF (demo)')">PDF</button><button class="btn" onclick="toast('Scheduled: emailed every Monday 9 AM (demo)')">Schedule email</button></div>
+    <div class="row wrap filters" style="margin-bottom:14px"><select class="inp" style="width:auto"><option>Last 30 days</option><option>Today</option><option>Last 7 days</option><option>This month</option><option>Last 12 months</option><option>Custom range…</option></select>
+      <select class="inp" style="width:auto"><option>All cities</option>${CITY_NAMES.map(c=>`<option>${c}</option>`).join('')}</select><select class="inp" style="width:auto"><option>In-city + Railway</option><option>In-city only</option><option>Railway only</option></select><button class="btn pri" onclick="toast('Report refreshed')">Apply</button></div>
+    <div class="grid g3" style="margin-bottom:14px">${d.kp.map(k=>kpi(k[0],k[1])).join('')}</div>
+    ${table(d.cols, d.rows.map(r=>({cells:r})), {h:520})}</div></div></div>`;
+};
+
+PAGES.notify = () => {
+  const T=[['Booking confirmed','Shopkeeper, Receiver',1,1,'Hi {name}, parcel {id} is booked. Track: {link}'],['Job assigned','Delivery boy',1,0,'New pickup {id} at {address}. Open app.'],['Picked up','Shopkeeper, Receiver',1,0,'Parcel {id} picked up by {handler} at {time}.'],['Loaded on train','Shopkeeper, Receiver, Dest. agent',1,1,'Parcel {id} loaded on train {train_no}, arriving {eta}.'],['Arrived at destination','Shopkeeper, Receiver',1,0,'Parcel {id} reached {station}. Out for delivery soon.'],['Out for delivery + OTP','Receiver',1,1,'Parcel {id} out for delivery. OTP: {otp}. Share only with delivery person.'],['Delivered','Shopkeeper, Receiver',1,0,'Parcel {id} delivered at {time}. Photo: {link}'],['Delay alert','Shopkeeper, Receiver, Admin',1,1,'Parcel {id} delayed: {reason}. New ETA {eta}.'],['Login OTP','All logins',0,1,'{otp} is your ParcelSetu login OTP.']];
+  return `<div class="grid g4">${kpi('WhatsApp sent (month)',num(18420),'97.9% delivered','up')}${kpi('SMS sent (month)',num(9310),'98.6% delivered','up')}${kpi('Messaging cost',money(5210),'Passed into service fee')}${kpi('DLT templates','9 approved')}</div>
+  <div class="grid g21" style="margin-top:16px"><div class="card"><h3>Message templates</h3><div class="sub">Turn WhatsApp or SMS on/off for each event</div>
+   ${table(['Event','Sent to','WhatsApp','SMS','Message'],T.map((t,i)=>({cells:[`<b>${t[0]}</b>`,`<span class="small">${t[1]}</span>`,`<button class="toggle ${t[2]?'on':''}" onclick="this.classList.toggle('on');toast('Saved')"></button>`,`<button class="toggle ${t[3]?'on':''}" onclick="this.classList.toggle('on');toast('Saved')"></button>`,`<span class="small sec" style="white-space:normal;display:block;max-width:340px">${t[4]}</span>`]})))}</div>
+   <div><div class="card"><h3>Providers</h3><div class="sub">Connected accounts</div>
+    <div class="alert"><div class="sp"><b>WhatsApp Business API</b><div class="small muted">Business number +91 98xxxx4410 · Verified</div></div>${chip('Connected','ok')}</div>
+    <div class="alert"><div class="sp"><b>SMS (MSG91)</b><div class="small muted">Sender ID PRCSTU · DLT registered</div></div>${chip('Connected','ok')}</div>
+    <div class="alert"><div class="sp"><b>Email (AWS SES)</b><div class="small muted">Invoices & reports</div></div>${chip('Connected','ok')}</div></div>
+    <div class="card" style="margin-top:16px"><h3>Send a broadcast</h3><div class="sub">For example a holiday notice to all shopkeepers</div><select class="inp" style="margin-bottom:8px"><option>All shopkeepers (${SHOPS.length})</option><option>All delivery boys</option><option>All railway agents</option></select><textarea class="inp" rows="3">Diwali notice: railway parcels booked after 5 PM on 30 Oct will be loaded on 1 Nov.</textarea><button class="btn pri" style="margin-top:8px" onclick="toast('Broadcast sent on WhatsApp (demo)')">Send on WhatsApp</button></div></div></div>
+  <div class="card" style="margin-top:16px"><h3>Message log</h3><div class="sub">Latest messages</div>
+   ${table(['Time','To','Channel','Event','Parcel','Status'],SH.slice(0,10).map((s,i)=>({cells:[fdt(s.events.at(-1).t),i%2?s.to.name+' · '+s.to.phone:s.shop.owner+' · '+s.shop.phone,i%3===2?'SMS':'WhatsApp',s.status,`<span class="id">${s.id}</span>`,chip(i===4?'Failed · retried':i%4===1?'Read':'Delivered',i===4?'warn':'ok')]})))}</div>`;
+};
+
+PAGES.support = () => {
+  const topics=['Parcel delayed','Wrong delivery address','Refund not received','Damaged parcel','Pickup not done','Change receiver phone','Invoice GST correction'];
+  return `<div class="grid g4">${kpi('Open tickets',7)}${kpi('Resolved this week',41)}${kpi('Avg first response','18 min')}${kpi('Satisfaction','4.5 / 5')}</div><div style="height:16px"></div>`+
+  table(['Ticket','Raised by','Parcel','Topic','Raised','Assigned to','Priority','Status',''], topics.map((t,i)=>{const s=SH[i*3]; return {cells:[`<span class="id">TK-${3301+i}</span>`,s.shop.name,`<a href="#" class="id" onclick="openShipment('${s.id}');return false">${s.id}</a>`,t,fdt(minsAgo(rint(20,3000))),['Sonal Joshi','Priya Saxena'][i%2],chip(i<2?'High':'Normal',i<2?'bad':''),chip(i>4?'Resolved':'Open',i>4?'ok':'warn'),`<button class="btn sm" onclick="toast('Reply sent on WhatsApp (demo)')">Reply</button>`]};}));
+};
+PAGES.audit = () => table(['Time','User','Role','Action','Details','IP'], [
+  ['Anil Kumar','Super Admin','Status changed manually',`${SH[3].id}: Picked Up → Out for Delivery`],['Priya Saxena','Operations','Reassigned delivery',`${SH[5].id}: Ramesh Kumar → Suresh Yadav`],['Karan Malhotra','Finance','Payout released','₹6,240 to Vikram Singh'],
+  ['Anil Kumar','Super Admin','Price changed','Jaipur ⇄ Delhi 5–10 kg: ₹570 → ₹590'],['Priya Saxena','Operations','Media uploaded',`${SH[8].id}: delivery photo`],['Anil Kumar','Super Admin','KYC approved','Chopra Gifts (SK114)'],
+  ['Sonal Joshi','Support','Refund issued',`${SH[11].id}: ₹340 to wallet`],['Karan Malhotra','Finance','Wallet credited','Sharma Textiles: ₹500 goodwill'],['Anil Kumar','Super Admin','User blocked','Bansal Hardware (SK112)']
+].map((r,i)=>({cells:[fdt(minsAgo(15+i*47)),r[0],r[1],`<b>${r[2]}</b>`,r[3],'103.21.'+rint(10,250)+'.'+rint(10,250)]})));
+PAGES.settings = () => `<div class="grid g2"><div class="card"><h3>Company</h3><div class="sub">Shown on invoices and labels</div>
+   <div class="field"><label class="f">Business name</label><input class="inp" value="${BRAND} Logistics Pvt Ltd"></div><div class="grid g2"><div class="field"><label class="f">GSTIN</label><input class="inp" value="08AAJCP1234K1Z5"></div><div class="field"><label class="f">Support number</label><input class="inp" value="+91 141 400 1234"></div></div>
+   <div class="field"><label class="f">Cities served</label><div class="row wrap">${CITY_NAMES.map(c=>`<span class="tag city">${c}</span>`).join('')}<button class="btn sm">+ Add city</button></div></div>
+   <div class="field"><label class="f">Auto-assign rule</label><select class="inp"><option>Own boy within 5 km, else Porter after 10 min</option><option>Always own boy first, admin decides</option><option>Always Porter</option></select></div>
+   <div class="field"><label class="f">Leg 3 order on arrival at destination</label><select class="inp"><option>Create automatically</option><option>Wait for admin approval</option></select></div></div>
+  <div class="card"><h3>Integrations</h3><div class="sub">API connections</div>
+   ${[['Porter API','Quote, create, track, cancel'],['Razorpay','Payments & wallet'],['WhatsApp Business API','Notifications'],['MSG91 SMS','OTP & alerts'],['Google Maps','Address search & distance'],['AWS S3','Photos, videos, receipts'],['Railway parcel API','Planned for Phase 2']].map((x,i)=>`<div class="alert"><div class="sp"><b>${x[0]}</b><div class="small muted">${x[1]}</div></div>${chip(i===6?'Not connected':'Connected',i===6?'':'ok')}</div>`).join('')}</div></div>
+  <div class="card" style="margin-top:16px"><h3>Roles & permissions</h3><div class="sub">What each admin staff role can do</div>
+   ${table(['Module','Super Admin','Operations','Finance','Support'],[['Bookings & manual updates','✓','✓','View','View'],['Dispatch & Porter','✓','✓','—','—'],['Users & KYC','✓','✓','—','View'],['Earnings & payouts','✓','—','✓','—'],['Pricing','✓','—','✓','—'],['Reports','✓','✓','✓','—'],['Settings','✓','—','—','—']].map(r=>({cells:r})))}</div>`;
+
+/* =========================================================================
+   SHOPKEEPER PAGES
+   ========================================================================= */
+const MYSHOP = SHOPS[0];
+const mine = () => SH.filter(s=>s.shop===MYSHOP);
+PAGES.sdash = () => { const m=mine(); const act=m.filter(isLive); const pend=m.filter(isReq);
+  return `${pend.length?`<div class="banner warn">${pend.length} request${pend.length>1?'s are':' is'} waiting for admin approval. <a href="#" onclick="S.tab.sp='pend';go('sparcels');return false">View →</a></div>`:''}<div class="grid g4">${kpi('Waiting for approval',pend.length)}${kpi('Active parcels',act.length)}${kpi('Delivered this month',m.filter(s=>s.status==='Delivered').length*6)}${kpi('Spent this month',money(m.reduce((a,s)=>a+s.price,0)*5))}</div><div class="grid g4" style="margin-top:12px">${kpi('Wallet balance',money(MYSHOP.wallet),'Recharge anytime')}</div>
+  <div class="grid g2" style="margin-top:16px"><div class="card" style="cursor:pointer" onclick="S.newType='incity';go('sbook')"><h3>📦 Send within ${MYSHOP.city}</h3><div class="sub">Raise a request · admin confirms price and pickup</div><button class="btn pri">Request in-city pickup</button></div>
+   <div class="card" style="cursor:pointer" onclick="S.newType='railway';go('sbook')"><h3>🚆 Send to another city or state</h3><div class="sub">Door to door by train · 1–3 days</div><button class="btn pri">Request railway parcel</button></div></div>
+  <div class="card" style="margin-top:16px"><div class="ch"><div><h3>My recent parcels</h3><div class="sub">Click to see the full timeline with photos</div></div><div class="sp"></div><button class="btn sm" onclick="go('sparcels')">View all →</button></div>
+  ${table(['Tracking ID','Booked','Receiver','To','Type','Status',{t:'Amount',num:1}], m.slice(0,6).map(s=>({click:`openShipment('${s.id}')`,cells:[`<span class="id">${s.id}</span>`,fdt(s.created),s.to.name,s.to.city,typeTag(s),chip(s.status),money(s.price)]})))}</div>`; };
+PAGES.sbook = () => bookingForm(false);
+PAGES.sparcels = () => tabs('sp',[['all','All'],['pend',`Waiting approval (${mine().filter(isReq).length})`],['act','Active'],['done','Delivered'],['rej','Rejected / cancelled']]) + table(['Tracking ID','Requested','Receiver','To','Type','Status',{t:'Amount',num:1},''], mine().filter(s=>{const t=curTab('sp','all'); return t==='all'||(t==='pend'?isReq(s):t==='done'?s.status==='Delivered':t==='rej'?['Rejected','Cancelled'].includes(s.status):isLive(s));}).map(s=>({click:`openShipment('${s.id}')`,cells:[`<span class="id">${s.id}</span>`,fdt(s.created),s.to.name+'<div class="small muted">'+s.to.phone+'</div>',s.to.city,typeTag(s),chip(s.status),money(s.price),'<button class="btn sm">Track</button>']})));
+PAGES.saddr = () => `<div class="row" style="margin-bottom:12px"><h3>Pickup addresses</h3><div class="sp"></div><button class="btn" onclick="toast('Add address (demo)')">+ Add address</button></div>
+  ${table(['Label','Address','Contact',''],[['Main shop',MYSHOP.addr,MYSHOP.phone],['Godown','Plot 14, Sitapura Industrial Area, Jaipur',phone()]].map(r=>({cells:[`<b>${r[0]}</b>`,r[1],r[2],'<button class="btn sm">Edit</button>']})))}
+  <div class="row" style="margin:20px 0 12px"><h3>Saved receivers</h3><div class="sp"></div><button class="btn" onclick="toast('Add receiver (demo)')">+ Add receiver</button></div>
+  ${table(['Name','Phone','Address','Parcels sent'], mine().slice(0,8).map(s=>({cells:[s.to.name,s.to.phone,s.to.addr,rint(1,9)]})))}`;
+PAGES.swallet = () => `<div class="grid g21"><div class="card"><h3>Wallet transactions</h3><div class="sub">Every booking, recharge and refund</div>
+  ${table(['Date','Description',{t:'Amount',num:1},{t:'Balance',num:1}], (()=>{let b=MYSHOP.wallet; return mine().slice(0,10).map((s,i)=>{const row={cells:[fdt(s.created),i===3?'Wallet recharge (UPI)':'Booking '+s.id+' · '+s.to.city,i===3?'<span style="color:var(--good-x)">+'+money(2000)+'</span>':'−'+money(s.price),money(b)]}; b+= i===3?-2000:s.price; return row;});})())}</div>
+  <div class="card"><h3>Recharge wallet</h3><div class="sub">Balance ${money(MYSHOP.wallet)}</div><div class="row wrap" style="margin-bottom:10px">${[500,1000,2000,5000].map(v=>`<button class="btn" onclick="document.getElementById('rc').value=${v}">${money(v)}</button>`).join('')}</div><input id="rc" class="inp" value="2000"><button class="btn pri block" style="margin-top:10px" onclick="MYSHOP.wallet+=+document.getElementById('rc').value;toast('Recharge successful via UPI (demo)');render()">Pay with UPI / Card</button><div class="small muted" style="margin-top:8px">Low balance alert on WhatsApp below ₹500.</div></div></div>`;
+PAGES.sinv = () => table(['Invoice no.','Period',{t:'Parcels',num:1},{t:'Taxable',num:1},{t:'GST 18%',num:1},{t:'Total',num:1},''], MONTHS.slice(-6).reverse().map((m,i)=>{const t=rint(80,190)*100; return {cells:[`<span class="id">INV/26-27/${String(1200-i*37)}</span>`,m,rint(40,120),money(t),money(t*0.18),money(t*1.18),`<button class="btn sm" onclick="toast('Invoice PDF downloaded (demo)')">Download PDF</button>`]};}));
+PAGES.ssupport = () => `<div class="grid g2"><div class="card"><h3>Raise a complaint</h3><div class="sub">We reply on WhatsApp within 30 minutes</div><div class="field"><label class="f">Parcel</label><select class="inp">${mine().slice(0,6).map(s=>`<option>${s.id} · ${s.to.city}</option>`).join('')}</select></div><div class="field"><label class="f">Issue</label><select class="inp"><option>Parcel delayed</option><option>Damaged</option><option>Refund</option><option>Other</option></select></div><textarea class="inp" rows="3" placeholder="Describe the issue"></textarea><button class="btn pri" style="margin-top:10px" onclick="toast('Ticket TK-3312 created')">Submit</button></div>
+  <div class="card"><h3>Contact</h3><div class="sub">Mon–Sat, 9 AM–9 PM</div><p>📞 +91 141 400 1234<br>💬 WhatsApp: +91 98xxxx4410<br>✉ support@parcelsetu.in</p><h3 style="margin-top:14px">My tickets</h3>${table(['Ticket','Topic','Status'],[['TK-3301','Parcel delayed',chip('Resolved','ok')],['TK-3307','Refund not received',chip('Open','warn')]].map(r=>({cells:r})))}</div></div>`;
+PAGES.sprofile = () => `<div class="grid g2"><div class="card"><h3>Business profile</h3><div class="kv" style="margin-top:10px"><div>Shop</div><div>${MYSHOP.name}</div><div>Owner</div><div>${MYSHOP.owner}</div><div>Mobile</div><div>${MYSHOP.phone}</div><div>GSTIN</div><div>${MYSHOP.gst}</div><div>Address</div><div>${MYSHOP.addr}</div></div></div>
+  <div class="card"><h3>KYC documents</h3><div class="sub">Status: ${chip('Approved','ok')}</div>${[['PAN card','Verified'],['Aadhaar','Verified'],['Shop photo','Verified'],['GST certificate','Verified']].map(d=>`<div class="alert"><div class="sp">${d[0]}</div>${chip(d[1],'ok')}</div>`).join('')}</div></div>`;
+
+/* =========================================================================
+   PHONE SHELLS: DELIVERY BOY + RAILWAY AGENT
+   ========================================================================= */
+function phoneShell(){
+  const isBoy=S.role==='boy'; const role=ROLES[S.role];
+  const notes = isBoy ? [['What the delivery boy can do',['Go online or offline with one tap','See assigned pickups and drops (in-city and railway legs)','Open the address in Google Maps, call the shop or receiver','Take pickup and drop photos/videos with the phone camera (time and GPS saved)','Enter the receiver OTP to complete delivery','See today\'s and weekly earnings and payouts']],['Try this',[`Open job <b>${D1.id}</b>, upload a pickup photo (or use a sample), then deliver with OTP <b>${D1.otp}</b>`,'Switch to Admin and open the same parcel: the photos and status show up there']]]
+    : [['What the railway agent can do',['See parcels coming to the station from shops','Confirm receipt with photo/video and parcel condition','Enter train number, PWB/RR number, coach, timings and charges','Upload loading video and receipt photo','At the destination: mark the parcel arrived and unloaded','The final delivery order (Porter or own boy) is created automatically']],['Try this',[`In <b>Incoming</b>, receive parcel <b>${D4.id}</b>, then load it on a train`,`In <b>Arrivals</b>, mark <b>${D3.id}</b> as arrived: the system books Leg 3 delivery`]]];
+  return `<div class="main phone-wrap" style="min-height:100%"><div class="demo-bar">Demo mockup with sample data · ${role.label} screens are made for the phone browser and can be installed to the home screen</div>
+   <header class="top"><div class="logo"><div class="mk">PS</div>${BRAND}</div><div><div class="crumb">${role.label} login (mobile)</div><h1>${role.user}</h1></div><div class="sp"></div><button class="btn" onclick="logout()">⇄ Switch login</button></header>
+   <div class="content"><div class="phone-stage"><div class="phone"><div class="notch"></div>${isBoy?boyApp():agentApp()}</div>
+   <div class="notes">${notes.map(n=>`<h3>${n[0]}</h3><ul>${n[1].map(x=>`<li>${x}</li>`).join('')}</ul>`).join('')}
+   <div class="pricebox small">Photos and videos are compressed on the phone before upload. Each file stores the time, GPS location, uploader and parcel status.</div></div></div></div></div>`;
+}
+/* --- delivery boy --- */
+function boyJobs(){
+  const out=[];
+  SH.forEach(s=>{ if(s.stage===0||['Cancelled','Rejected'].includes(s.status)) return;
+    if(s.type==='incity' && s.legs[0].boy===RAMESH && s.status!=='Delivered') out.push({s,leg:s.legs[0],kind:'incity'});
+    if(s.type==='railway' && s.legs[0].boy===RAMESH && s.legs[0].mode==='Own' && s.stage<=2) out.push({s,leg:s.legs[0],kind:'leg1'});
+    if(s.type==='railway' && s.legs[2].boy===RAMESH && s.legs[2].mode==='Own' && s.stage>=9 && s.status!=='Delivered') out.push({s,leg:s.legs[2],kind:'leg3'});
+  }); return out;
+}
+function boyApp(){
+  const t=S.boyTab; let body='';
+  const jobs=boyJobs();
+  if(S.boyJob){ body=boyJobScreen(SH.find(s=>s.id===S.boyJob)); }
+  else if(t==='home'){ body=`<div class="pcard"><div class="row"><div class="sp"><div class="h">${RAMESH.online?'You are online':'You are offline'}</div><div class="small muted">${RAMESH.online?'New jobs will be assigned to you':'Turn on to get jobs'}</div></div><button class="toggle ${RAMESH.online?'on':''}" onclick="RAMESH.online=!RAMESH.online;render()"></button></div></div>
+     <div class="grid g3 keep3" style="gap:8px;margin-bottom:10px">${[['Today',`${money(420)}`],['Jobs',jobs.length+' open'],['Done','7']].map(k=>`<div class="pcard" style="margin:0;text-align:center"><div class="small muted">${k[0]}</div><b>${k[1]}</b></div>`).join('')}</div>
+     <div class="small muted" style="margin:4px 2px 8px">ASSIGNED JOBS</div>${jobs.map(boyJobCard).join('')||'<div class="pcard muted">No jobs right now</div>'}`; }
+  else if(t==='jobs'){ const done=SH.filter(s=>s.legs.some(l=>l.boy===RAMESH)&&s.status==='Delivered').slice(0,8); body=`<div class="small muted" style="margin:4px 2px 8px">OPEN</div>${jobs.map(boyJobCard).join('')}<div class="small muted" style="margin:12px 2px 8px">COMPLETED</div>${done.map(s=>`<div class="pcard"><div class="row"><b class="id">${s.id}</b><div class="sp"></div>${chip('Delivered')}</div><div class="small muted">${s.to.addr}</div></div>`).join('')}`; }
+  else if(t==='earn'){ const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], vals=[380,460,410,520,390,610,420];
+     body=`<div class="pcard"><div class="small muted">This week</div><div style="font-size:30px;font-weight:700">${money(vals.reduce((a,b)=>a+b))}</div><div class="small muted">54 jobs · ★ ${RAMESH.rating} · payout every Monday</div>${chartDiv('bEarn',{kind:'hbar',items:days.map((d,i)=>({label:d,value:vals[i]})),fmt:money,lw:40,title:'Earnings this week'})}</div>
+     <div class="pcard"><div class="h">Payouts</div>${[['Last Monday',2840,'Paid'],['2 weeks ago',3120,'Paid'],['3 weeks ago',2675,'Paid']].map(p=>`<div class="row small" style="padding:6px 0;border-bottom:1px dashed var(--line)"><span class="sp">${p[0]}</span><b>${money(p[1])}</b>${chip(p[2],'ok')}</div>`).join('')}</div>`; }
+  else { body=`<div class="pcard"><div class="h">${RAMESH.name}</div><div class="small muted">${RAMESH.id} · ${RAMESH.phone}</div><div class="small muted">${RAMESH.vehicle}</div></div><div class="pcard">${['Driving licence','Aadhaar','Bank account (HDFC)','Vehicle RC'].map(d=>`<div class="row small" style="padding:6px 0"><span class="sp">${d}</span>${chip('Verified','ok')}</div>`).join('')}</div><button class="btn block" onclick="logout()">Logout</button>`; }
+  return `<div class="ph-head"><div class="sp"><div class="t">${S.boyJob?'Job '+S.boyJob:'Hi, '+RAMESH.name.split(' ')[0]}</div><div class="s">${S.boyJob?'<a style="color:#fff" href="#" onclick="goBack();return false">← Back to jobs</a>':'Delivery Boy · Jaipur'}</div></div><button class="btn sm sw" style="display:none;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff" onclick="logout()">⇄ Switch</button></div>
+   <div class="ph-body">${body}</div>
+   <div class="ph-nav">${[['home','⌂','Home'],['jobs','☰','Jobs'],['earn','₹','Earnings'],['me','◉','Profile']].map(n=>`<button class="${S.boyTab===n[0]&&!S.boyJob?'on':''}" onclick="boyTabGo('${n[0]}')"><b>${n[1]}</b>${n[2]}</button>`).join('')}</div>`;
+}
+function boyJobCard(j){
+  const s=j.s; const lbl = j.kind==='incity'?'In-city delivery':j.kind==='leg1'?'Railway · drop at station':'Railway · deliver from station';
+  const from = j.kind==='leg3'? s.legs[1].agentD.station : s.shop.name; const to = j.kind==='leg1'? s.legs[1].agentO.station : s.to.addr;
+  return `<div class="pcard" onclick="boyOpen('${s.id}')" style="cursor:pointer"><div class="row"><b class="id">${s.id}</b><span class="sp"></span>${j.kind==='incity'?'<span class="tag city">In-city</span>':'<span class="tag rail">Railway</span>'}</div>
+   <div class="small" style="margin-top:6px"><b>${lbl}</b> <span class="muted">· ${s.pickup}</span></div><div class="small sec">↑ ${from}</div><div class="small sec">↓ ${to}</div><div class="row small" style="margin-top:6px"><span class="muted">${s.weight} kg · ${j.leg.km} km</span><span class="sp"></span>${chip(s.status)}</div></div>`;
+}
+function capture(key, label){
+  const m=S.pending[key];
+  return m ? `<div class="medias">${mediaThumb(m)}</div><a href="#" class="small" onclick="delete S.pending['${key}'];render();return false">Retake</a>`
+   : `<label class="upl"><input type="file" accept="image/*,video/*" capture="environment" onchange="gotMedia('${key}','${label}',this)">📷 Take ${label.toLowerCase()} (photo or video)</label><a href="#" class="small" onclick="S.pending['${key}']={label:'${label}',kind:'img',t:new Date(),gps:'26.9124, 75.7873'};render();return false">Use sample photo (demo)</a>`;
+}
+function gotMedia(key,label,inp){ const f=inp.files[0]; if(!f) return; S.pending[key]={label, kind:f.type.startsWith('video')?'video':'img', url:URL.createObjectURL(f), t:new Date(), gps:'26.9124, 75.7873'}; render(); }
+function advance(s, st, by, media, extra){ const i=s.flow.indexOf(st); for(let k=s.stage+1;k<i;k++) pushEvent(s,s.flow[k],new Date()); pushEvent(s,st,new Date(),extra); const e=s.events.at(-1); if(by) e.by=by; if(media) e.media=media.filter(Boolean); s.stage=i; s.status=st; }
+function boyJobScreen(s){
+  const kind = s.type==='incity'?'incity': s.stage<=3?'leg1':'leg3';
+  const L = kind==='leg3'?s.legs[2]:s.legs[0];
+  const pickedSt = kind==='incity'?'Picked Up':kind==='leg1'?'Picked Up from Shop':'Out for Delivery';
+  const pickedDone = kind==='incity'? s.stage>=2 : kind==='leg1'? s.stage>=2 : s.stage>=10;
+  const fl = kind==='leg3'? s.legs[1].agentD.loc : s.from, tl = kind==='leg1'? s.legs[1].agentO.loc : s.to;
+  const from = kind==='leg3'? `${s.legs[1].agentD.agency}, ${s.legs[1].agentD.station}` : `${s.shop.name}, ${s.from.addr} (Landmark: ${s.from.landmark})`;
+  const to = kind==='leg1'? `${s.legs[1].agentO.agency}, ${s.legs[1].agentO.station}` : `${s.to.name}, ${s.to.addr} (Landmark: ${s.to.landmark})`;
+  const finished = kind==='leg1' ? s.stage>=3 : s.status==='Delivered';
+  return `<div class="pcard"><div class="row"><b>${kind==='incity'?'In-city delivery':kind==='leg1'?'Railway Leg 1: shop → station':'Railway Leg 3: station → receiver'}</b></div>
+    <div class="small muted">${s.items} · ${s.km||L.km} km</div><div class="small" style="margin-top:4px">${s.qty} box · ${s.dims} · ${s.weight} kg${s.fragile?' · <b style="color:var(--warn-x)">Fragile</b>':''}</div><div class="small muted">Pickup: ${s.pickup}</div></div>
+   <div class="pcard">
+    <div class="step ${pickedDone?'done':'cur'}"><div class="n">1</div><div class="sp"><b>Pickup</b><div class="small sec">${from}</div>
+      <div class="row" style="margin:6px 0"><a class="btn sm" target="_blank" href="https://maps.google.com/?q=${fl.lat},${fl.lng}">Navigate</a><button class="btn sm" onclick="toast('Calling… (demo)')">Call</button></div>
+      ${pickedDone?'<span class="small" style="color:var(--good-x)">✓ Picked up</span>':`${capture('pick','Pickup photo')}<button class="btn pri block" style="margin-top:8px" onclick="boyPick('${s.id}','${pickedSt}')">Confirm pickup</button>`}</div></div>
+    <div class="step ${finished?'done':pickedDone?'cur':''}"><div class="n">2</div><div class="sp"><b>${kind==='leg1'?'Hand over to railway agent':'Deliver to receiver'}</b><div class="small sec">${to}</div>
+      ${finished?'<span class="small" style="color:var(--good-x)">✓ Completed</span>':pickedDone?`<div class="row" style="margin:6px 0"><a class="btn sm" target="_blank" href="https://maps.google.com/?q=${tl.lat},${tl.lng}">Navigate</a><button class="btn sm" onclick="toast('Calling… (demo)')">Call</button></div>
+        ${kind!=='leg1'?`<label class="f">Receiver OTP <span class="muted">(demo OTP: ${s.otp})</span></label><input class="inp" id="otp" inputmode="numeric" maxlength="4" placeholder="4-digit OTP" style="margin-bottom:8px">`:''}
+        ${capture('drop',kind==='leg1'?'Handover photo':'Delivery photo')}<button class="btn ok block" style="margin-top:8px" onclick="boyDrop('${s.id}','${kind}')">${kind==='leg1'?'Handed to agent':'Mark delivered'}</button>`:'<span class="small muted">After pickup</span>'}</div></div>
+   </div>`;
+}
+function boyPick(id, st){ const s=SH.find(x=>x.id===id); if(!S.pending.pick) return toast('Please take a pickup photo first'); advance(s, st, RAMESH.name+' (Delivery Boy)', [S.pending.pick]); delete S.pending.pick; toast('Pickup confirmed · shopkeeper & receiver notified on WhatsApp'); render(); }
+function boyDrop(id, kind){ const s=SH.find(x=>x.id===id);
+  if(kind!=='leg1'){ const o=document.getElementById('otp').value; if(o!==s.otp) return toast('Wrong OTP. Ask the receiver for the OTP sent by SMS'); }
+  if(!S.pending.drop) return toast('Please take a photo first');
+  if(kind==='leg1'){ advance(s,'Handed to Origin Agent',RAMESH.name+' (Delivery Boy)',[S.pending.drop]); toast('Handed over to '+s.legs[1].agentO.agency+' · agent notified'); }
+  else { advance(s,'Delivered',RAMESH.name+' (Delivery Boy)',[S.pending.drop,{label:'OTP verified',kind:'img',t:new Date(),gps:'26.8851, 75.8130'}]); toast('Delivered ✓ · photo sent to shopkeeper on WhatsApp'); }
+  S.pending={}; render(); }
+
+/* --- railway agent --- */
+function agentApp(){
+  const t=S.agentTab; let body='';
+  const incoming=SH.filter(s=>s.type==='railway'&&s.legs[1].agentO===MAHESH&&s.stage>=1&&s.stage<=4&&s.status!=='Cancelled');
+  const arrivals=SH.filter(s=>s.type==='railway'&&s.legs[1].agentD===MAHESH&&s.stage>=5&&s.stage<=8);
+  if(S.agentSel){ body=agentScreen(SH.find(s=>s.id===S.agentSel)); }
+  else if(t==='home'){ body=`<div class="grid g2 keep2" style="gap:8px;margin-bottom:10px">${[['Coming from shops',incoming.filter(s=>s.stage<3).length],['To receive / load',incoming.filter(s=>s.stage>=3).length],['Arriving by train',arrivals.length],['This month',`${rint(140,190)} parcels`]].map(k=>`<div class="pcard" style="margin:0"><div class="small muted">${k[0]}</div><b style="font-size:18px">${k[1]}</b></div>`).join('')}</div>
+     <div class="small muted" style="margin:4px 2px 8px">NEEDS ACTION</div>${[...incoming.filter(s=>s.stage>=3),...arrivals].map(agentCard).join('')||'<div class="pcard muted">Nothing pending</div>'}
+     <div class="pcard"><div class="small muted">Commission this month</div><b style="font-size:20px">${money(8650)}</b><div class="small muted">173 parcels × ₹50 · railway charges reimbursed weekly</div></div>`; }
+  else if(t==='in'){ body=`<div class="small muted" style="margin:4px 2px 8px">PARCELS FOR ${MAHESH.station.toUpperCase()}</div>`+(incoming.map(agentCard).join('')||'<div class="pcard muted">No incoming parcels</div>'); }
+  else if(t==='arr'){ body=`<div class="small muted" style="margin:4px 2px 8px">ARRIVING AT ${MAHESH.station.toUpperCase()}</div>`+(arrivals.map(agentCard).join('')||'<div class="pcard muted">No arrivals</div>'); }
+  else { const rec=SH.filter(s=>s.type==='railway'&&(s.legs[1].agentO===MAHESH||s.legs[1].agentD===MAHESH)&&s.stage>8).slice(0,10);
+     body=`<div class="pcard"><div class="h">${MAHESH.agency}</div><div class="small muted">${MAHESH.name} · ${MAHESH.station}</div><div class="small muted">Fee ${money(MAHESH.fee)} per parcel</div></div><div class="small muted" style="margin:4px 2px 8px">HISTORY</div>${rec.map(s=>`<div class="pcard"><div class="row"><b class="id">${s.id}</b><span class="sp"></span>${chip(s.status)}</div><div class="small sec">${s.from.city} → ${s.to.city} · Train ${s.legs[1].train.no}</div><div class="small muted">${s.legs[1].train.pwb} · ${money(s.legs[1].rail)}</div></div>`).join('')}<button class="btn block" onclick="logout()">Logout</button>`; }
+  return `<div class="ph-head"><div class="sp"><div class="t">${S.agentSel?'Parcel '+S.agentSel:MAHESH.agency}</div><div class="s">${S.agentSel?'<a style="color:#fff" href="#" onclick="goBack();return false">← Back</a>':'Railway Agent · '+MAHESH.station}</div></div><button class="btn sm sw" style="display:none;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff" onclick="logout()">⇄ Switch</button></div>
+   <div class="ph-body">${body}</div>
+   <div class="ph-nav">${[['home','⌂','Home'],['in','⇣','Incoming'],['arr','🚆','Arrivals'],['rec','☰','Records']].map(n=>`<button class="${S.agentTab===n[0]&&!S.agentSel?'on':''}" onclick="agentTabGo('${n[0]}')"><b>${n[1]}</b>${n[2]}</button>`).join('')}</div>`;
+}
+function agentCard(s){
+  const isArr = s.legs[1].agentD===MAHESH;
+  const next = isArr ? 'Confirm arrival' : s.stage<3 ? 'On the way from shop' : s.stage===3 ? 'Receive parcel' : 'Load on train';
+  return `<div class="pcard" style="cursor:pointer" onclick="agentOpen('${s.id}')"><div class="row"><b class="id">${s.id}</b><span class="sp"></span>${chip(s.status)}</div>
+   <div class="small sec" style="margin-top:4px">${s.from.city} → ${s.to.city} · ${s.weight} kg · ${s.items}</div>
+   ${isArr?`<div class="small muted">Train ${s.legs[1].train.no} · ${s.legs[1].train.pwb}${s.delayed?' · running late':''}</div>`:`<div class="small muted">From ${s.shop.name}</div>`}
+   <div class="row" style="margin-top:6px"><span class="small" style="color:var(--primary-d);font-weight:600">${next} →</span></div></div>`;
+}
+function agentScreen(s){
+  const isArr = s.legs[1].agentD===MAHESH; const tr=s.legs[1].train;
+  let act='';
+  if(!isArr && s.stage<3) act=`<div class="pcard small muted">Parcel is on the way from the shop (${s.legs[0].mode==='Porter'?'Porter '+s.legs[0].porter.crn:s.legs[0].boy.name}). You will get a WhatsApp message when it reaches you.</div>`;
+  else if(!isArr && s.stage===3) act=`<div class="pcard"><div class="h">Receive parcel</div><div class="small muted" style="margin-bottom:8px">Check the parcel, weigh it and take a photo</div>
+     <label class="f">Condition</label><div class="seg" style="margin-bottom:10px"><button class="on">OK</button><button onclick="toast('If damaged, admin and shopkeeper are alerted with the photo')">Damaged</button></div>
+     <label class="f">Actual weight (kg)</label><input class="inp" value="${s.weight}" style="margin-bottom:10px">${capture('rcv','Parcel received')}
+     <button class="btn pri block" style="margin-top:10px" onclick="agentReceive('${s.id}')">Confirm received</button></div>`;
+  else if(!isArr && s.stage===4) act=`<div class="pcard"><div class="h">Load on train</div><div class="small muted" style="margin-bottom:8px">Enter the railway booking details</div>
+     <div class="grid g2" style="gap:8px"><div><label class="f">Train no.</label><input class="inp" id="tno" value="${tr.no}"></div><div><label class="f">Journey date</label><input class="inp" type="date" value="${NOW.toISOString().slice(0,10)}"></div></div>
+     <label class="f" style="margin-top:8px">Train name</label><input class="inp" value="${tr.name}">
+     <div class="grid g2" style="gap:8px;margin-top:8px"><div><label class="f">PWB / RR no.</label><input class="inp" id="pwb" value="${tr.pwb}"></div><div><label class="f">Coach / van</label><input class="inp" value="${tr.coach}"></div></div>
+     <div class="grid g2" style="gap:8px;margin-top:8px"><div><label class="f">Departure</label><input class="inp" type="time" value="${addMin(NOW,40).toTimeString().slice(0,5)}"></div><div><label class="f">Expected arrival</label><input class="inp" value="+${tr.hours} h"></div></div>
+     <label class="f" style="margin-top:8px">Railway charges paid (₹)</label><input class="inp" value="${tr.charges}" style="margin-bottom:10px">
+     ${capture('load','Loading video')}<div style="height:8px"></div>${capture('rr','PWB receipt')}
+     <button class="btn pri block" style="margin-top:10px" onclick="agentLoad('${s.id}')">Save & mark loaded</button></div>`;
+  else if(isArr && s.stage<=8) act=`<div class="pcard"><div class="h">Confirm arrival & unloading</div><div class="small muted" style="margin-bottom:8px">Train ${tr.no} · ${tr.pwb} · ${tr.coach}</div>
+     <label class="f">Condition</label><div class="seg" style="margin-bottom:10px"><button class="on">OK</button><button onclick="toast('Damage reported to admin with photos')">Damaged</button></div>
+     ${capture('unl','Unloading photo')}
+     <label class="f" style="margin-top:10px">Final delivery by</label><select class="inp" id="l3"><option>Auto (system decides)</option><option>Own delivery boy</option><option>Porter</option></select>
+     <button class="btn pri block" style="margin-top:10px" onclick="agentArrive('${s.id}')">Confirm received & book delivery</button></div>`;
+  else act=`<div class="pcard small" style="color:var(--good-x)">✓ Done. ${s.status}</div>`;
+  return `<div class="pcard"><div class="row"><b class="id">${s.id}</b><span class="sp"></span>${chip(s.status)}</div><div class="small sec" style="margin-top:4px">${s.from.city} → ${s.to.city}</div>
+    <div class="kv small" style="margin-top:8px;grid-template-columns:90px 1fr"><div>Sender</div><div>${s.shop.name}</div><div>Receiver</div><div>${s.to.name}, ${s.to.city}</div><div>Contents</div><div>${s.items}</div><div>Boxes</div><div>${s.qty} × ${s.dims}</div><div>Weight</div><div>${s.weight} kg${s.fragile?' · Fragile':''}</div></div></div>${act}`;
+}
+function agentReceive(id){ const s=SH.find(x=>x.id===id); if(!S.pending.rcv) return toast('Please take a photo first'); advance(s,'Received by Origin Agent',MAHESH.name+' (Railway Agent)',[S.pending.rcv]); S.pending={}; toast('Received ✓ · shopkeeper notified'); render(); }
+function agentLoad(id){ const s=SH.find(x=>x.id===id); if(!S.pending.load) return toast('Please add the loading video or photo');
+  const tr=s.legs[1].train; tr.no=document.getElementById('tno').value; tr.pwb=document.getElementById('pwb').value;
+  advance(s,'Loaded on Train',MAHESH.name+' (Railway Agent)',[S.pending.load,S.pending.rr],{train:`${tr.no} · ${tr.name} · ${tr.pwb}`}); S.pending={};
+  toast(`Loaded on train ${tr.no} · WhatsApp sent to shopkeeper, receiver and ${s.legs[1].agentD.agency}`); render(); }
+function agentArrive(id){ const s=SH.find(x=>x.id===id); if(!S.pending.unl) return toast('Please take an unloading photo first');
+  const ch=document.getElementById('l3').value; if(ch==='Porter'){ s.legs[2]=roadLeg(3,s.to.city,s.legs[1].agentD.loc,s.to,'Porter',null,s.weight); s.cost=s.legs.reduce((a,l)=>a+l.cost,0); }
+  if(s.stage<7) advance(s,'Arrived at Destination',MAHESH.name+' (Railway Agent)');
+  advance(s,'Received by Destination Agent',MAHESH.name+' (Railway Agent)',[S.pending.unl]); advance(s,'Leg 3 Assigned');
+  S.pending={}; toast(s.legs[2].mode==='Porter'?`Porter order ${s.legs[2].porter.crn} created automatically for final delivery`:`Final delivery assigned to ${s.legs[2].boy.name}`); render(); }
+
+/* deep links: #admin/requests, #shop/sbook, #boy, #agent/arr, #track/PS24101 */
+window.onerror = (m,src,l,c) => { document.title='ERR '+m+' @'+l+':'+c; };
+history.replaceState({n:0},'',location.href);
+if(location.hash.length>1) applyHash(); else render();
+</script>
+</body>
+</html>
